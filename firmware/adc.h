@@ -193,4 +193,10 @@ unsigned long AD7793_SingleConversion(void);
 /* Returns the average of several conversion results. */
 unsigned long AD7793_ContinuousReadAvg(unsigned char sampleNumber);
 
+void adc_change_channel(uint8_t channel, uint8_t use_bias);
+
+void adc_init_channel(uint8_t channel);
+
+
+
 #endif	// _AD7793_H_

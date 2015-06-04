@@ -16,6 +16,7 @@
 #define LCD_LIB
 
 #include <inttypes.h>
+#include <avr/pgmspace.h>
 
 
 //Uncomment this if LCD 4 bit interface is used
@@ -93,6 +94,8 @@ void LCDcursorRight(uint8_t);	//shif cursor right by n
 // <length> is the number of LCD characters that the bargraph should cover
 //adapted from AVRLIB - displays progress only for 8 bit variables
 void LCDprogressBar(uint8_t progress, uint8_t maxprogress, uint8_t length);
+
+void print_calibration_screen(int32_t oxygen1_uV, int32_t oxygen2_uV);
 
 
 #endif

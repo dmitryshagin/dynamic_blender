@@ -308,3 +308,38 @@ unsigned long AD7793_ContinuousReadAvg(unsigned char sampleNumber)
     
     return(samplesAverage);
 }
+
+
+void adc_change_channel(uint8_t channel, uint8_t use_bias)
+{
+    unsigned long command = 0;
+    // command |= AD7793_CONF_UNIPOLAR;
+    command |= AD7793_CONF_REFSEL(AD7793_REFSEL_INT);
+    if(use_bias == 1){
+        command |= AD7793_CONF_VBIAS(1);
+    }
+    command |= AD7793_CONF_BOOST;
+    command |= AD7793_CONF_BUF;
+    command |= AD7793_CONF_CHAN(channel);
+    command |= AD7793_CONF_GAIN(AD7793_GAIN_16);
+    AD7793_SetRegisterValue(
+            AD7793_REG_CONF,
+            command,
+            2,
+            1);
+}
+
+void adc_init_channel(uint8_t channel)
+{
+    adc_change_channel(channel, 1);
+    AD7793_WaitRdyGoLow();
+
+    AD7793_Calibrate(AD7793_MODE_CAL_INT_ZERO,
+                     channel);      // Internal Zero-Scale Calibration
+    AD7793_Calibrate(AD7793_MODE_CAL_INT_FULL,
+                     channel);      // Internal Full-Scale Calibration
+    AD7793_SetRegisterValue(AD7793_REG_MODE,
+                        0x9, 
+                        2,
+                        1);
+}   

@@ -20,7 +20,7 @@
 DEVICE     = atmega644p
 CLOCK      = 18432000
 PROGRAMMER = -c USBasp
-OBJECTS    = main.o lcd.o spi.o adc.o
+OBJECTS    = main.o lcd.o spi.o adc.o init.o
 FUSES      = -U hfuse:w:0xd8:m -U lfuse:w:0xff:m
 
 # ATMega8 fuse bits used above (fuse bits for other devices are different!):
