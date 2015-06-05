@@ -18,9 +18,9 @@
 # FUSES ........ Parameters for avrdude to flash the fuses appropriately.
 
 DEVICE     = atmega644p
-CLOCK      = 18432000
+CLOCK      = 18432000UL
 PROGRAMMER = -c USBasp
-OBJECTS    = main.o lcd.o spi.o adc.o init.o
+OBJECTS    = main.o lcd.o spi.o adc.o init.o pid.o uart.o
 FUSES      = -U hfuse:w:0xd8:m -U lfuse:w:0xff:m
 
 # ATMega8 fuse bits used above (fuse bits for other devices are different!):
@@ -52,7 +52,7 @@ AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE)
 COMPILE = avr-gcc -Wall -Os -DF_CPU=$(CLOCK) -mmcu=$(DEVICE)
 
 # symbolic targets:
-all:	main.hex
+all:	main.hex main.eep
 
 .c.o:
 	$(COMPILE) -c $< -o $@
@@ -69,6 +69,7 @@ all:	main.hex
 
 flash:	all
 	$(AVRDUDE) -U flash:w:main.hex:i
+	$(AVRDUDE) -U eeprom:w:main.eep
 
 fuse:
 	$(AVRDUDE) $(FUSES)
@@ -81,7 +82,7 @@ load: all
 	bootloadHID main.hex
 
 clean:
-	rm -f main.hex main.elf $(OBJECTS)
+	rm -f main.hex main.elf main.eep $(OBJECTS)
 
 # file targets:
 main.elf: $(OBJECTS)
@@ -91,8 +92,11 @@ main.hex: main.elf
 	rm -f main.hex
 	avr-objcopy -j .text -j .data -O ihex main.elf main.hex
 	avr-size --format=avr --mcu=$(DEVICE) main.elf
-# If you have an EEPROM section, you must also create a hex file for the
-# EEPROM and add it to the "flash" target.
+
+main.eep: main.elf
+	rm -f main.eep
+	avr-objcopy -j .eeprom --change-section-lma .eeprom=0 -O ihex $< $@
+
 
 # Targets for code debugging and analysis:
 disasm:	main.elf

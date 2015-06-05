@@ -151,6 +151,12 @@
 /******************************************************************************/
 /* Functions Prototypes                                                       */
 /******************************************************************************/
+extern volatile uint8_t adc_current_channel;
+extern volatile uint8_t adc_ready, adc_prepare;
+
+void check_adc_flags();
+
+void adc_change_channel_and_trigger_delay(uint8_t channel);
 
 /* Initialize AD7793 and check if the device is present*/
 unsigned char AD7793_Init(void);

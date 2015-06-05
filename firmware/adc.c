@@ -46,6 +46,10 @@
 #include "adc.h"	   // AD7793 definitions.
 #include "spi.h"	   // Communication definitions.
 
+
+volatile uint8_t adc_current_channel = AD7793_CH_AIN1P_AIN1M;
+volatile uint8_t adc_ready = 0, adc_prepare = 0;
+
 /***************************************************************************//**
  * @brief Initializes the AD7793 and checks if the device is present.
  *
@@ -53,10 +57,25 @@
  *                  Example: 1 - if initialization was successful (ID is 0x0B).
  *                           0 - if initialization was unsuccessful.
 *******************************************************************************/
+void check_adc_flags()
+{
+    if(adc_prepare>0){
+        adc_prepare++;
+        //240msec for single consersion
+        if(adc_prepare>=240){
+            adc_ready = 1;
+            adc_prepare = 0;
+        }
+    }
+}
+
 unsigned char AD7793_Init(void)
 { 
 	unsigned char status = 0x1;
     unsigned char ad_id = AD7793_GetRegisterValue(AD7793_REG_ID, 1, 1);
+    
+    adc_prepare = 0;
+    adc_ready = 0;
     
     if((ad_id & 0x0F) != AD7793_ID)
 	{
@@ -343,3 +362,11 @@ void adc_init_channel(uint8_t channel)
                         2,
                         1);
 }   
+
+void adc_change_channel_and_trigger_delay(uint8_t channel)
+{
+    adc_change_channel(channel, 0);
+    adc_prepare = 1;
+    adc_ready = 0;
+}
+
