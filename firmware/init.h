@@ -75,22 +75,29 @@ void save_eeprom_data();
 // }
 
 // TODO - define everything below
-#define VALVE1_ON
-#define VALVE1_OFF
-#define VALVE2_ON
-#define VALVE2_OFF
-#define LED_VAVLE1_ON
-#define LED_VAVLE1_OFF
-#define LED_VAVLE2_ON
-#define LED_VAVLE2_OFF
-#define LED_ALERT_ON
-#define LED_ALERT_OFF
-#define BUZZER_ON
-#define BUZZER_OFF
-#define COMPRESSOR_IS_ON
+#define VALVE1_ON 			(PORTB |=  (1<<PB2))
+#define VALVE1_OFF 			(PORTB &= ~(1<<PB2))
+#define VALVE2_ON 			(PORTB |=  (1<<PB3))
+#define VALVE2_OFF 			(PORTB &= ~(1<<PB3))
+#define LED_VAVLE1_ON 		(PORTC |=  (1<<PC0))
+#define LED_VAVLE1_OFF 		(PORTC &= ~(1<<PC0))
+#define LED_VAVLE2_ON	 	(PORTC |=  (1<<PC1))
+#define LED_VAVLE2_OFF 		(PORTC &= ~(1<<PC1))
+#define LED_ALERT_ON 		(PORTC |=  (1<<PC2))
+#define LED_ALERT_OFF 		(PORTC &= ~(1<<PC2))
+#define BUZZER_ON 			(PORTC |=  (1<<PC3))
+#define BUZZER_OFF 			(PORTC &= ~(1<<PC3))
+#define COMPRESSOR_IS_ON  	(PIND  &   (1<<PD2)) 
+#define FLOW_IS_ON  		(PIND  &   (1<<PD3)) 
 
 //TODO - тут херня написана рандомная, надо реальный порт проверять
-#define BUTTON_PLUS_PRESSED (PINB & (1 << 2))
+#define BUTTON_PLUS_PRESSED 	(PINC & (1 << PC4))
+#define BUTTON_MINUS_PRESSED 	(PINC & (1 << PC5))
+#define BUTTON_ENTER_PRESSED 	(PINC & (1 << PC6))
+#define BUTTON_EXIT_PRESSED 	(PINC & (1 << PC7))
+
+
+
 
 #define MODE_SET_MIX 0
 #define MODE_CALIBRATE 1
