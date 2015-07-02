@@ -56,12 +56,12 @@ void pid_Init(int16_t p_factor, int16_t i_factor, int16_t d_factor, struct PID_D
  *  \param processValue  Measured value.
  *  \param pid_st  PID status struct.
  */
-int16_t pid_Controller(int16_t setPoint, int16_t processValue, struct PID_DATA *pid_st)
+int16_t pid_Controller(uint16_t setPoint, uint16_t processValue, struct PID_DATA *pid_st)
 {
-  int16_t error, p_term, d_term;
+  int32_t error, p_term, d_term;
   int32_t i_term, ret, temp;
 
-  error = setPoint - processValue;
+  error = (int32_t)setPoint - (int32_t)processValue;
 
   // Calculate Pterm and limit error overflow
   if (error > pid_st->maxError){

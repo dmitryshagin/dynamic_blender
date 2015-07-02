@@ -61,8 +61,7 @@ void check_adc_flags()
 {
     if(adc_prepare>0){
         adc_prepare++;
-        //240msec for single consersion
-        if(adc_prepare>=240){
+        if(adc_prepare>=124){
             adc_ready = 1;
             adc_prepare = 0;
         }
@@ -351,12 +350,12 @@ void adc_change_channel(uint8_t channel, uint8_t use_bias)
 void adc_init_channel(uint8_t channel)
 {
     adc_change_channel(channel, 1);
-    AD7793_WaitRdyGoLow();
-
-    AD7793_Calibrate(AD7793_MODE_CAL_INT_ZERO,
-                     channel);      // Internal Zero-Scale Calibration
-    AD7793_Calibrate(AD7793_MODE_CAL_INT_FULL,
-                     channel);      // Internal Full-Scale Calibration
+    // AD7793_WaitRdyGoLow();
+ 
+    // AD7793_Calibrate(AD7793_MODE_CAL_INT_ZERO,
+                     // channel);      // Internal Zero-Scale Calibration
+    // AD7793_Calibrate(AD7793_MODE_CAL_INT_FULL,
+                     // channel);      // Internal Full-Scale Calibration
     AD7793_SetRegisterValue(AD7793_REG_MODE,
                         0x9, 
                         2,

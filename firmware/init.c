@@ -6,7 +6,8 @@
 #include "adc.h"
 #include "uart.h"
 
-struct SYSTEM_CONFIG nv_system_config EEMEM = {95,95,660,660,100,100,5759,0x80,0xFF};
+// struct SYSTEM_CONFIG nv_system_config EEMEM = {95,95,660,660,100,100,5759,0x80,0xFF};
+struct SYSTEM_CONFIG nv_system_config EEMEM = {95,95,660,660,100,100,5759,0x80,0xA0};
 struct SYSTEM_CONFIG system_config;
 
 
@@ -26,6 +27,20 @@ void init_outputs()
 	DDRB |= (1 << 3) | (1 << 2); 
 	DDRC |= (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3);	
 	DDRD |= (1 << 6) | (1 << 7); //Contrast & Brightness
+    DDRD &= ~(1 << PD2);
+    DDRD &= ~(1 << PD3);
+    PORTD |= (1<<PD2);
+    PORTD |= (1<<PD3);
+
+    DDRC &= ~(1 << PC4);
+    DDRC &= ~(1 << PC5);
+    DDRC &= ~(1 << PC6);
+    DDRC &= ~(1 << PC7);
+    PORTC |= (1<<PC4);
+    PORTC |= (1<<PC5);
+    PORTC |= (1<<PC6);
+    PORTC |= (1<<PC7);
+
 
 	TCCR2A |= (1 << WGM20 | 1 << WGM21) | (1 << COM2A1) | (1 << COM2B1);
 	TCCR2B |= (1 << CS21) | (1 << CS22);
@@ -96,9 +111,9 @@ void init()
     LCDinit();//init LCD bit, dual line, cursor right
     LCDclr();//clears LCD
     init_adc();
-    uart0_init(UART_BAUD_SELECT(F_CPU, 115200UL));
-    FILE uart_stream = FDEV_SETUP_STREAM(uart0_putc, uart0_getc, _FDEV_SETUP_RW);
-    stdout = stdin = &uart_stream;
+    uart0_init(UART_BAUD_SELECT(115200UL, F_CPU));
+    // FILE uart_stream = FDEV_SETUP_STREAM(uart0_putc, uart0_getc, _FDEV_SETUP_RW);
+    // stdout = stdin = &uart_stream;
     sei();
 }
 
