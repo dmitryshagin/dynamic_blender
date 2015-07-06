@@ -19,10 +19,12 @@
 
 DEVICE     = atmega644p
 CLOCK      = 18432000UL
-PROGRAMMER = -c USBasp
+PROGRAMMER = -c avr109
+PROGRAMMER_ISP = -c USBasp
 OBJECTS    = main.o lcd.o spi.o adc.o init.o pid.o uart.o
 FUSES      = -U hfuse:w:0xd8:m -U lfuse:w:0xff:m
-
+BAUD	   = 115200
+PORT       = /dev/tty.usbserial-A9CRRP59
 # ATMega8 fuse bits used above (fuse bits for other devices are different!):
 # Example for 8 MHz internal oscillator
 # Fuse high byte:
@@ -48,7 +50,13 @@ FUSES      = -U hfuse:w:0xd8:m -U lfuse:w:0xff:m
 
 # Tune the lines below only if you know what you are doing:
 
-AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE)
+#AVRdude setup for ISP
+AVRDUDE_ISP = avrdude $(PROGRAMMER_ISP) -p $(DEVICE)
+
+#AVRdude setup for bootloader
+AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE) -P $(PORT) -b $(BAUD) -v
+
+
 COMPILE = avr-gcc -Wall -Os -DF_CPU=$(CLOCK) -mmcu=$(DEVICE) -DUART_RX0_BUFFER_SIZE=128 -DUART_TX0_BUFFER_SIZE=128
 
 # symbolic targets:
@@ -70,6 +78,10 @@ all:	main.hex main.eep
 flash:	all
 	$(AVRDUDE) -U flash:w:main.hex:i
 	$(AVRDUDE) -U eeprom:w:main.eep
+
+flash_isp:	all
+	$(AVRDUDE_ISP) -U flash:w:main.hex:i
+	$(AVRDUDE_ISP) -U eeprom:w:main.eep
 
 fuse:
 	$(AVRDUDE) $(FUSES)
