@@ -78,10 +78,10 @@ void process_adc_data()
 		if(current_working_mode == MODE_MINIXG){
 			// TODO - process PID 1
 			//TODO - тут происходит какая-то жопа с размерностями и форматами
-		      int16_t inputValue = pid_Controller((uint16_t)oxygen1_target, (uint16_t)oxygen1_value, &pidData1);
-		    sprintf(tmpstr,"%8li",  inputValue);
-			LCDGotoXY(8,1);
-			LCDstring((uint8_t *)tmpstr,8);
+		      // int16_t inputValue = pid_Controller((uint16_t)oxygen1_target, (uint16_t)oxygen1_value, &pidData1);
+		    // sprintf(tmpstr,"%8li",  inputValue);
+			// LCDGotoXY(8,1);
+			// LCDstring((uint8_t *)tmpstr,8);
 		}
 				
 	      //should be limited to 0-100%
@@ -108,27 +108,21 @@ void test_outputs(void)
 {
 	set_servo(SERVO1,0);
 	set_servo(SERVO2,0);
-
-	_delay_ms(1000);
+	_delay_ms(500);
 	set_servo(SERVO1,100);
-	_delay_ms(1000);
 	set_servo(SERVO2,100);
-
 	_delay_ms(1000);
 	set_servo(SERVO1,0);
 	_delay_ms(1000);
 	set_servo(SERVO2,0);
 	_delay_ms(1000);
 	VALVE1_ON;
-	_delay_ms(1000);	
-	VALVE2_ON;
-	_delay_ms(1000);
 	LED_VAVLE1_ON;
-	_delay_ms(500);
+	_delay_ms(500);	
+	VALVE2_ON;
 	LED_VAVLE2_ON;
 	_delay_ms(500);
 	LED_ALERT_ON;
-	_delay_ms(500);
 	BUZZER_ON;
 	_delay_ms(500);
 	VALVE1_OFF;
@@ -190,7 +184,7 @@ void process_uart(void){
 int main(void)
 {
 	init();	
-	test_outputs();
+	// test_outputs();
 	uart0_puts("Welcome to blender :)\r\n");
 
 
@@ -199,51 +193,93 @@ int main(void)
 
 	char tmpstr[8];
 
+	target.oxygen = 32000;
 
 	for(;;){
 
 		process_uart();
 
-		if(buttons.buttonPlus>0){
-			if(buttons.buttonPlus==0xFF){
-				LED_VAVLE1_ON;
-			}
-			LED_ALERT_ON;
-		}else{
-			LED_ALERT_OFF;
-			LED_VAVLE1_OFF;
-		}
+		// if(buttons.buttonPlus>0){
+		// 	if(buttons.buttonPlus==0xFF){
+		// 		LED_VAVLE1_ON;
+		// 	}
+		// 	LED_ALERT_ON;
+		// }else{
+		// 	LED_ALERT_OFF;
+		// 	LED_VAVLE1_OFF;
+		// }
     
 	    if(adc_ready>0){ process_adc_data(); }
 
-		if(current_working_mode == MODE_CALIBRATE && uptime_counter>10000){
+		if(current_working_mode == MODE_CALIBRATE && BUTTON_ENTER_PRESSED && COMPRESSOR_IS_ON){
+			current_working_mode = MODE_SET_MIX;
 			// current_working_mode = MODE_MINIXG;
+			LCDclr();
 		}
 
 		if(uptime_counter%100==0){ // 10 times per cesond
 			// putchar('F');//just for test
-			uart0_putc('F');
+			// uart0_putc('F');
 			if(current_working_mode==MODE_CALIBRATE){
 		    	coeff_sensor1 = O2_COEFF/oxygen1_uV;
 		    	coeff_sensor2 = O2_COEFF/oxygen2_uV;
 		    	print_calibration_screen(oxygen1_uV, oxygen2_uV);
 		    	//TODO - вынести всё это на указатели на структуру
-		    	//TODO - надо подождать, пока юзер включит компрессор (как показать?) и подождать после этого несколько секунд (как показать?)
-		    	//без включения компрессора калибровку поидее надо запрещать
 		    }
 		    if(current_working_mode==MODE_SET_MIX){
 				target.s1_target = ((uint32_t)target.oxygen * 100UL) * 1000UL / (100 - target.helium);
 				target.s2_target = (uint16_t)target.oxygen * 1000;
+				// sprintf(tmpstr,"NOW SET MIX");
+				// LCDGotoXY(0,0);
+				// LCDstring((uint8_t *)tmpstr,8);
+
+				LCDGotoXY(0,0);
+				LCDstring(" Oxygen ",8);
+				sprintf(tmpstr,"  %2li.%03li",  oxygen1_value/1000, oxygen1_value%1000);
+				LCDGotoXY(0,1);
+				LCDstring((uint8_t *)tmpstr,8);
+				LCDGotoXY(8,0);
+				LCDstring(" Helium ",8);
+				sprintf(tmpstr,"  %2li.%03li",  oxygen2_value/1000, oxygen2_value%1000);
+				LCDGotoXY(8,1);
+				LCDstring((uint8_t *)tmpstr,8);
 		    }
 
 		    if(current_working_mode==MODE_MINIXG){
+		    	if(target.oxygen > 0){
+		    		LED_VAVLE1_ON;
+		    		VALVE1_ON;
+		    	}
+		    	if(target.helium > 0){
+		    		LED_VAVLE2_ON;
+		    		VALVE2_ON;
+		    	}
+
+		    	if(check_emergency((uint16_t)oxygen2_value)){
+		    		current_working_mode = MODE_EMERGENCY;
+		    		LED_ALERT_ON;
+		    		BUZZER_ON;
+			        VALVE1_OFF;
+			        VALVE2_OFF;
+			        LED_VAVLE1_OFF;
+			        LED_VAVLE2_OFF;
+			        LCDGotoXY(0,0);
+				    LCDstring("   Emergency!   ",16);
+				    LCDGotoXY(0,1);
+				    if(COMPRESSOR_IS_ON){
+				        LCDstring("  O2 too high!  ",16);
+				    }else{
+				        LCDstring("Compressor:  OFF",16);
+				    }
+		    	}
+
 		    	// TODO - display some data, check valves and emergency states
 				// sprintf(tmpstr,"%6liuV", oxygen1_uV);
 				// LCDGotoXY(0,0);
-					// LCDstring((uint8_t *)tmpstr,8);
-					// sprintf(tmpstr,"  %2li.%03li",  oxygen1_value/1000, oxygen1_value%1000);
-					// LCDGotoXY(0,1);
-					// LCDstring((uint8_t *)tmpstr,8);
+				// LCDstring((uint8_t *)tmpstr,8);
+				// sprintf(tmpstr,"  %2li.%03li",  oxygen1_value/1000, oxygen1_value%1000);
+				// LCDGotoXY(0,1);
+				// LCDstring((uint8_t *)tmpstr,8);
 				
 		    }
 		}

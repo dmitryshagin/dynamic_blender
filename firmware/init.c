@@ -138,8 +138,10 @@ void set_servo(uint8_t servo, int16_t value)
     }
 }
 
-uint8_t is_emergency()
+uint8_t check_emergency(uint16_t oxygen)
 {
-    //надо проверить ничего ли мы не профтыкали, если профтыкали - обрубить клапана и начать орать
+    if(!COMPRESSOR_IS_ON || (oxygen > 45000) ){
+        return 1;
+    }    
     return 0;
 }

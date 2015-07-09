@@ -4,14 +4,14 @@
 #include <avr/io.h>
 #include "pid.h"
 
-#define O2_COEFF 209460000
+#define O2_COEFF 209460000UL
 
 #define SERVO1 0
 #define SERVO2 1
 
 typedef struct TARGET_MIX{
-  uint8_t oxygen;
-  uint8_t helium;
+  uint16_t oxygen;
+  uint16_t helium;
   uint16_t s1_target; //is calculated for desired mix. For Nitrox equals target_oxygen
   uint16_t s2_target;
 } targetMix_t;
@@ -58,7 +58,7 @@ void set_brightness(uint8_t value);
 
 void set_contrast(uint8_t value);
 
-uint8_t is_emergency();
+uint8_t check_emergency(uint16_t oxygen);
 
 void uart_init( void );
 
@@ -103,6 +103,7 @@ void save_eeprom_data();
 #define MODE_CALIBRATE 1
 #define MODE_MINIXG 2
 #define MODE_SETUP 3
+#define MODE_EMERGENCY 4
 
 
 #endif	// _INIT_H_
