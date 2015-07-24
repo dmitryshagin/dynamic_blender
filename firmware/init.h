@@ -38,8 +38,6 @@ typedef struct SYSTEM_CONFIG{
 } systemConfig_t;
 
 typedef struct BUTTONS_STATUS{
-	uint8_t buttonOK;
-	uint8_t buttonCancel;
 	uint8_t buttonPlus;
 	uint8_t buttonMinus;
 } buttonsStatus_t;
@@ -99,6 +97,8 @@ void save_eeprom_data();
 
 #define MODE_SET_BRIGHTNESS 50
 #define MODE_SET_CONTRAST 51
+#define MODE_SET_WARNING_LEVEL 52
+#define MODE_SET_EMERGENCY_LEVEL 53
 #define MODE_SET_VALVE1 60
 #define MODE_SET_VALVE2 61
 #define MODE_RUN_TEST 70

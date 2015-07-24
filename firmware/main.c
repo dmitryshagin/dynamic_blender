@@ -207,7 +207,7 @@ void show_set_o2(){
 	LED_VAVLE1_OFF;
 	LED_VAVLE2_OFF;
 	LCDGotoXY(0,0);
-	LCDstring("   Set Oxygen  +",16);
+	LCDstring("     Oxygen    +",16);
 	LCDGotoXY(0,1);
 	LCDstring("               -",16);
 }
@@ -219,7 +219,7 @@ void show_set_he(){
 	LED_VAVLE1_OFF;
 	LED_VAVLE2_OFF;
 	LCDGotoXY(0,0);
-	LCDstring("   Set Helium  +",16);
+	LCDstring("     Helium    +",16);
 	LCDGotoXY(0,1);
 	LCDstring("               -",16);
 }
@@ -231,7 +231,7 @@ void show_set_brightness(){
 	LED_VAVLE1_OFF;
 	LED_VAVLE2_OFF;	
 	LCDGotoXY(0,0);
-	LCDstring("Set Brightness +",16);
+	LCDstring("   Brightness  +",16);
 	LCDGotoXY(0,1);
 	LCDstring("               -",16);
 }
@@ -243,7 +243,32 @@ void show_set_contrast(){
 	LED_VAVLE1_OFF;
 	LED_VAVLE2_OFF;
 	LCDGotoXY(0,0);
-	LCDstring("  Set Contrast +",16);
+	LCDstring("    Contrast   +",16);
+	LCDGotoXY(0,1);
+	LCDstring("               -",16);
+}
+
+void show_set_warning_level(){
+	current_working_mode = MODE_SET_WARNING_LEVEL;
+	VALVE1_OFF;
+	VALVE2_OFF;
+	LED_VAVLE1_OFF;
+	LED_VAVLE2_OFF;
+	LCDGotoXY(0,0);
+	LCDstring("   Warning O2  +",16);
+	LCDGotoXY(0,1);
+	LCDstring("               -",16);
+}
+
+
+void show_set_emergency_level(){
+	current_working_mode = MODE_SET_EMERGENCY_LEVEL;
+	VALVE1_OFF;
+	VALVE2_OFF;
+	LED_VAVLE1_OFF;
+	LED_VAVLE2_OFF;
+	LCDGotoXY(0,0);
+	LCDstring("  Emergency O2 +",16);
 	LCDGotoXY(0,1);
 	LCDstring("               -",16);
 }
@@ -282,6 +307,7 @@ void show_mixing(){
 		LED_VAVLE2_ON;
 		VALVE2_ON;
 	}
+	save_eeprom_data();
 	LCDGotoXY(0,0);
 	LCDstring("     Mixing     ",16);
 }
@@ -307,16 +333,6 @@ int main(void)
 	for(;;){
 
 		process_uart();
-
-		// if(buttons.buttonPlus>0){
-		// 	if(buttons.buttonPlus==0xFF){
-		// 		LED_VAVLE1_ON;
-		// 	}
-		// 	LED_ALERT_ON;
-		// }else{
-		// 	LED_ALERT_OFF;
-		// 	LED_VAVLE1_OFF;
-		// }
     
 	    if(adc_ready>0){ process_adc_data(); }
 
@@ -354,11 +370,31 @@ int main(void)
 			}else
 			if(current_working_mode == MODE_SET_CONTRAST){
 				if(BUTTON_ENTER_PRESSED){
-					show_set_valve1();
+					show_set_warning_level();
 					mode_setup_iteration = 1;
 				}else 
 				if(BUTTON_EXIT_PRESSED){
 					show_set_brightness();
+					mode_setup_iteration = 1;
+				}
+			}else
+			if(current_working_mode == MODE_SET_WARNING_LEVEL){
+				if(BUTTON_ENTER_PRESSED){
+					show_set_emergency_level();
+					mode_setup_iteration = 1;
+				}else 
+				if(BUTTON_EXIT_PRESSED){
+					show_set_contrast();
+					mode_setup_iteration = 1;
+				}
+			}else
+			if(current_working_mode == MODE_SET_EMERGENCY_LEVEL){
+				if(BUTTON_ENTER_PRESSED){
+					show_set_valve1();
+					mode_setup_iteration = 1;
+				}else 
+				if(BUTTON_EXIT_PRESSED){
+					show_set_warning_level();
 					mode_setup_iteration = 1;
 				}
 			}else
@@ -368,7 +404,7 @@ int main(void)
 					mode_setup_iteration = 1;
 				}else 
 				if(BUTTON_EXIT_PRESSED){
-					show_set_contrast();
+					show_set_emergency_level();
 					mode_setup_iteration = 1;
 				}
 			}else
@@ -400,6 +436,7 @@ int main(void)
 			if(mode_setup_iteration == 1){
 				if((current_working_mode >= 50 ) && (BUTTON_EXIT_PRESSED && BUTTON_ENTER_PRESSED)){
 					show_set_o2();
+					save_eeprom_data();
 					mode_setup_iteration = 2;
 				}	
 			}	
@@ -439,6 +476,42 @@ int main(void)
 					_delay_ms(1000);
 					show_run_test();
 		    	}
+		    }
+		    if(current_working_mode==MODE_SET_BRIGHTNESS){
+		    	if(system_config.brightness>0 && buttons.buttonMinus>0){
+		    		system_config.brightness-=1;
+		    	}
+		    	if(system_config.brightness<0xFF && buttons.buttonPlus>0){
+		    		system_config.brightness+=1;
+		    	}
+		    	if(system_config.brightness>10 && buttons.buttonMinus==0xFF){
+		    		system_config.brightness-=10;
+		    	}
+		    	if(system_config.brightness<0xF5 && buttons.buttonPlus==0xFF){
+		    		system_config.brightness+=10;
+		    	}
+		    	sprintf(tmpstr,"%03u     ", system_config.brightness);
+				LCDGotoXY(5,1);
+				LCDstring((uint8_t *)tmpstr,8);
+		    	set_brightness(system_config.brightness);
+		    }
+		    if(current_working_mode==MODE_SET_CONTRAST){
+		    	if(system_config.contrast>0 && buttons.buttonMinus>0){
+		    		system_config.contrast-=1;
+		    	}
+		    	if(system_config.contrast<0xFF && buttons.buttonPlus>0){
+		    		system_config.contrast+=1;
+		    	}
+		    	if(system_config.contrast>10 && buttons.buttonMinus==0xFF){
+		    		system_config.contrast-=10;
+		    	}
+		    	if(system_config.contrast<0xF5 && buttons.buttonPlus==0xFF){
+		    		system_config.contrast+=10;
+		    	}
+		    	sprintf(tmpstr,"%03u     ", system_config.contrast);
+				LCDGotoXY(5,1);
+				LCDstring((uint8_t *)tmpstr,8);
+		    	set_contrast(system_config.contrast);
 		    }
 		    if(current_working_mode==MODE_SET_O2){
 				// target.s1_target = ((uint32_t)target.oxygen * 100UL) * 1000UL / (100 - target.helium);

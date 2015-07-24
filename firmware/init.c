@@ -7,9 +7,10 @@
 #include "uart.h"
 
 // struct SYSTEM_CONFIG nv_system_config EEMEM = {95,95,660,660,100,100,5759,0x80,0xFF};
+//TODO - add target O2 and He here, it should be 16 bits each
 struct SYSTEM_CONFIG nv_system_config EEMEM = {95,95,660,660,100,100,5759,0x80,0xA0};
 struct SYSTEM_CONFIG system_config;
-
+struct SYSTEM_CONFIG stored_system_config;
 
 //it shuld be stored in EEPROM
 void load_eeprom_data()
@@ -19,7 +20,19 @@ void load_eeprom_data()
 
 void save_eeprom_data()
 {
-    eeprom_write_block(&system_config, &nv_system_config, sizeof(system_config));
+    eeprom_read_block((void*)&stored_system_config, (const void*)&nv_system_config, sizeof(stored_system_config));
+
+    if (system_config.min_servo_1 != stored_system_config.min_servo_1 ||
+        system_config.min_servo_2 != stored_system_config.min_servo_2 ||
+        system_config.max_servo_1 != stored_system_config.max_servo_1 ||
+        system_config.max_servo_2 != stored_system_config.max_servo_2 ||
+        system_config.max_servo1_percent != stored_system_config.max_servo1_percent ||
+        system_config.max_servo2_percent != stored_system_config.max_servo2_percent ||
+        system_config.servo_timer_period_icr_top != stored_system_config.servo_timer_period_icr_top ||
+        system_config.brightness != stored_system_config.brightness ||
+        system_config.contrast != stored_system_config.contrast){
+        eeprom_write_block(&system_config, &nv_system_config, sizeof(system_config));
+    }
 }
 
 void init_outputs()
