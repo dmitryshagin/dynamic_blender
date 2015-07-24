@@ -48,6 +48,13 @@ void process_buttons()
 	}else{
 		buttons.buttonPlus=0;
 	}
+	if(BUTTON_MINUS_PRESSED){
+		if(buttons.buttonMinus < 0xFF){
+			buttons.buttonMinus++;
+		}
+	}else{
+		buttons.buttonMinus=0;
+	}
 }
 
 ISR(TIMER0_OVF_vect)
@@ -181,6 +188,107 @@ void process_uart(void){
     }
 }
 
+void show_run_test(){
+	current_working_mode = MODE_RUN_TEST;
+	VALVE1_OFF;
+	VALVE2_OFF;
+	LED_VAVLE1_OFF;
+	LED_VAVLE2_OFF;
+	LCDGotoXY(0,0);
+	LCDstring("    Run Test   >",16);
+	LCDGotoXY(0,1);
+	LCDstring("               >",16);
+}
+
+void show_set_o2(){
+	current_working_mode = MODE_SET_O2;
+	VALVE1_OFF;
+	VALVE2_OFF;
+	LED_VAVLE1_OFF;
+	LED_VAVLE2_OFF;
+	LCDGotoXY(0,0);
+	LCDstring("   Set Oxygen  +",16);
+	LCDGotoXY(0,1);
+	LCDstring("               -",16);
+}
+
+void show_set_he(){
+	current_working_mode = MODE_SET_HE;
+	VALVE1_OFF;
+	VALVE2_OFF;
+	LED_VAVLE1_OFF;
+	LED_VAVLE2_OFF;
+	LCDGotoXY(0,0);
+	LCDstring("   Set Helium  +",16);
+	LCDGotoXY(0,1);
+	LCDstring("               -",16);
+}
+
+void show_set_brightness(){
+	current_working_mode = MODE_SET_BRIGHTNESS;
+	VALVE1_OFF;
+	VALVE2_OFF;
+	LED_VAVLE1_OFF;
+	LED_VAVLE2_OFF;	
+	LCDGotoXY(0,0);
+	LCDstring("Set Brightness +",16);
+	LCDGotoXY(0,1);
+	LCDstring("               -",16);
+}
+
+void show_set_contrast(){
+	current_working_mode = MODE_SET_CONTRAST;
+	VALVE1_OFF;
+	VALVE2_OFF;
+	LED_VAVLE1_OFF;
+	LED_VAVLE2_OFF;
+	LCDGotoXY(0,0);
+	LCDstring("  Set Contrast +",16);
+	LCDGotoXY(0,1);
+	LCDstring("               -",16);
+}
+
+void show_set_valve1(){
+	current_working_mode = MODE_SET_VALVE1;
+	VALVE1_ON;
+	VALVE2_OFF;
+	LED_VAVLE1_ON;
+	LED_VAVLE2_OFF;
+	LCDGotoXY(0,0);
+	LCDstring("  Set O2 valve +",16);
+	LCDGotoXY(0,1);
+	LCDstring("               -",16);
+}
+
+void show_set_valve2(){
+	current_working_mode = MODE_SET_VALVE2;
+	VALVE1_OFF;
+	VALVE2_ON;
+	LED_VAVLE1_OFF;
+	LED_VAVLE2_ON;
+	LCDGotoXY(0,0);
+	LCDstring("  Set He valve +",16);
+	LCDGotoXY(0,1);
+	LCDstring("               -",16);
+}
+
+void show_mixing(){
+	current_working_mode = MODE_MINIXG;
+	if(target.oxygen > 0){
+		LED_VAVLE1_ON;
+		VALVE1_ON;
+	}
+	if(target.helium > 0){
+		LED_VAVLE2_ON;
+		VALVE2_ON;
+	}
+	LCDGotoXY(0,0);
+	LCDstring("     Mixing     ",16);
+}
+
+
+
+
 int main(void)
 {
 	init();	
@@ -192,6 +300,7 @@ int main(void)
 	pid_Init(K_P * SCALING_FACTOR, K_I * SCALING_FACTOR , K_D * SCALING_FACTOR , &pidData2);
 
 	char tmpstr[8];
+	uint8_t mode_setup_iteration = 0;
 
 	target.oxygen = 32000;
 
@@ -211,11 +320,103 @@ int main(void)
     
 	    if(adc_ready>0){ process_adc_data(); }
 
-		if(current_working_mode == MODE_CALIBRATE && BUTTON_ENTER_PRESSED && COMPRESSOR_IS_ON){
-			current_working_mode = MODE_SET_MIX;
-			// current_working_mode = MODE_MINIXG;
-			LCDclr();
+	    if((current_working_mode == MODE_SET_O2 || current_working_mode == MODE_SET_HE) && COMPRESSOR_IS_ON && FLOW_IS_ON){
+			show_mixing();
+			mode_setup_iteration = 1;
+		}else
+		if(current_working_mode == MODE_MINIXG && (!COMPRESSOR_IS_ON || !FLOW_IS_ON) ){
+			show_set_o2();
+			mode_setup_iteration = 1;
 		}
+
+	    if(mode_setup_iteration==0 && ANY_BUTTON_PRESSED){
+			if(current_working_mode == MODE_CALIBRATE && ANY_BUTTON_PRESSED && COMPRESSOR_IS_ON){
+				show_set_o2();
+				mode_setup_iteration = 1;
+			}else
+			if(current_working_mode == MODE_SET_O2 && (BUTTON_ENTER_PRESSED)){
+				show_set_he();
+				mode_setup_iteration = 1;
+			}else
+			if(current_working_mode == MODE_SET_HE && (BUTTON_EXIT_PRESSED)){
+				show_set_o2();
+				mode_setup_iteration = 1;
+			}else
+			if(current_working_mode == MODE_SET_BRIGHTNESS){
+				if(BUTTON_ENTER_PRESSED){
+					show_set_contrast();
+					mode_setup_iteration = 1;
+				}else 
+				if(BUTTON_EXIT_PRESSED){
+					show_run_test();
+					mode_setup_iteration = 1;
+				}
+			}else
+			if(current_working_mode == MODE_SET_CONTRAST){
+				if(BUTTON_ENTER_PRESSED){
+					show_set_valve1();
+					mode_setup_iteration = 1;
+				}else 
+				if(BUTTON_EXIT_PRESSED){
+					show_set_brightness();
+					mode_setup_iteration = 1;
+				}
+			}else
+			if(current_working_mode == MODE_SET_VALVE1){
+				if(BUTTON_ENTER_PRESSED){
+					show_set_valve2();
+					mode_setup_iteration = 1;
+				}else 
+				if(BUTTON_EXIT_PRESSED){
+					show_set_contrast();
+					mode_setup_iteration = 1;
+				}
+			}else
+			if(current_working_mode == MODE_SET_VALVE2){
+				if(BUTTON_ENTER_PRESSED){
+					show_run_test();
+					mode_setup_iteration = 1;
+				}else 
+				if(BUTTON_EXIT_PRESSED){
+					show_set_valve1();
+					mode_setup_iteration = 1;
+				}
+			}else
+			if(current_working_mode == MODE_RUN_TEST){
+				if(BUTTON_ENTER_PRESSED){
+					show_set_brightness();
+					mode_setup_iteration = 1;
+				}else 
+				if(BUTTON_EXIT_PRESSED){
+					show_set_valve2();
+					mode_setup_iteration = 1;
+				}
+			}
+		}	
+
+		if(!ANY_BUTTON_PRESSED){
+			mode_setup_iteration = 0;
+		}else{
+			if(mode_setup_iteration == 1){
+				if((current_working_mode >= 50 ) && (BUTTON_EXIT_PRESSED && BUTTON_ENTER_PRESSED)){
+					show_set_o2();
+					mode_setup_iteration = 2;
+				}	
+			}	
+			if(mode_setup_iteration == 1){
+				if((current_working_mode == MODE_SET_HE || current_working_mode == MODE_SET_O2) && 
+					(BUTTON_EXIT_PRESSED && BUTTON_ENTER_PRESSED)){
+					show_set_brightness();
+					mode_setup_iteration = 2;
+				}
+			}
+			if(mode_setup_iteration==1){_delay_ms(50);} //just for some debounce	
+
+		}
+
+
+
+		
 
 		if(uptime_counter%100==0){ // 10 times per cesond
 			// putchar('F');//just for test
@@ -226,35 +427,36 @@ int main(void)
 		    	print_calibration_screen(oxygen1_uV, oxygen2_uV);
 		    	//TODO - вынести всё это на указатели на структуру
 		    }
-		    if(current_working_mode==MODE_SET_MIX){
-				target.s1_target = ((uint32_t)target.oxygen * 100UL) * 1000UL / (100 - target.helium);
-				target.s2_target = (uint16_t)target.oxygen * 1000;
-				// sprintf(tmpstr,"NOW SET MIX");
-				// LCDGotoXY(0,0);
-				// LCDstring((uint8_t *)tmpstr,8);
+		    if(current_working_mode==MODE_RUN_TEST){
+		    	if(BUTTON_MINUS_PRESSED||BUTTON_PLUS_PRESSED){
+		    		LCDGotoXY(15,0);
+		    		LCDstring(" ",1);
+		    		LCDGotoXY(0,1);
+					LCDstring("   Checking...  ",16);
+		    		test_outputs();
+		    		LCDGotoXY(0,1);
+					LCDstring("      DONE!     ",16);
+					_delay_ms(1000);
+					show_run_test();
+		    	}
+		    }
+		    if(current_working_mode==MODE_SET_O2){
+				// target.s1_target = ((uint32_t)target.oxygen * 100UL) * 1000UL / (100 - target.helium);
+				// target.s2_target = (uint16_t)target.oxygen * 1000;
 
-				LCDGotoXY(0,0);
-				LCDstring(" Oxygen ",8);
-				sprintf(tmpstr,"  %2li.%03li",  oxygen1_value/1000, oxygen1_value%1000);
-				LCDGotoXY(0,1);
-				LCDstring((uint8_t *)tmpstr,8);
-				LCDGotoXY(8,0);
-				LCDstring(" Helium ",8);
-				sprintf(tmpstr,"  %2li.%03li",  oxygen2_value/1000, oxygen2_value%1000);
-				LCDGotoXY(8,1);
-				LCDstring((uint8_t *)tmpstr,8);
+				// LCDGotoXY(0,0);
+				// LCDstring(" Oxygen ",8);
+				// sprintf(tmpstr,"  %2li.%03li",  oxygen1_value/1000, oxygen1_value%1000);
+				// LCDGotoXY(0,1);
+				// LCDstring((uint8_t *)tmpstr,8);
+				// LCDGotoXY(8,0);
+				// LCDstring(" Helium ",8);
+				// sprintf(tmpstr,"  %2li.%03li",  oxygen2_value/1000, oxygen2_value%1000);
+				// LCDGotoXY(8,1);
+				// LCDstring((uint8_t *)tmpstr,8);
 		    }
 
 		    if(current_working_mode==MODE_MINIXG){
-		    	if(target.oxygen > 0){
-		    		LED_VAVLE1_ON;
-		    		VALVE1_ON;
-		    	}
-		    	if(target.helium > 0){
-		    		LED_VAVLE2_ON;
-		    		VALVE2_ON;
-		    	}
-
 		    	if(check_emergency((uint16_t)oxygen2_value)){
 		    		current_working_mode = MODE_EMERGENCY;
 		    		LED_ALERT_ON;
@@ -271,16 +473,15 @@ int main(void)
 				    }else{
 				        LCDstring("Compressor:  OFF",16);
 				    }
-		    	}
-
-		    	// TODO - display some data, check valves and emergency states
-				// sprintf(tmpstr,"%6liuV", oxygen1_uV);
-				// LCDGotoXY(0,0);
-				// LCDstring((uint8_t *)tmpstr,8);
-				// sprintf(tmpstr,"  %2li.%03li",  oxygen1_value/1000, oxygen1_value%1000);
-				// LCDGotoXY(0,1);
-				// LCDstring((uint8_t *)tmpstr,8);
-				
+		    	}else{
+			    	// TODO - display some data, check valves and emergency states
+					// sprintf(tmpstr,"%6liuV", oxygen1_uV);
+					// LCDGotoXY(0,0);
+					// LCDstring((uint8_t *)tmpstr,8);
+					sprintf(tmpstr,"  %2li.%03li",  oxygen1_value/1000, oxygen1_value%1000);
+					LCDGotoXY(0,1);
+					LCDstring((uint8_t *)tmpstr,8);
+				}
 		    }
 		}
 			

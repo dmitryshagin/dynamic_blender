@@ -65,16 +65,6 @@ void uart_init( void );
 void save_eeprom_data();
 
 
-
-// int test_outputs()
-// {
-// 
-	// PORTB |= (1 << 3) | (1 << 2); 
-	// PORTC |= (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3);
-	// return 0;
-// }
-
-// TODO - define everything below
 #define VALVE1_ON 			(PORTB |=  (1<<PB2))
 #define VALVE1_OFF 			(PORTB &= ~(1<<PB2))
 #define VALVE2_ON 			(PORTB |=  (1<<PB3))
@@ -90,20 +80,45 @@ void save_eeprom_data();
 #define COMPRESSOR_IS_ON  	(!(PIND  & (1<<PD2))) 
 #define FLOW_IS_ON  		(!(PIND  & (1<<PD3)))
 
-//TODO - тут херня написана рандомная, надо реальный порт проверять
 #define BUTTON_PLUS_PRESSED 	(!(PINC & (1 << PC4)))
 #define BUTTON_MINUS_PRESSED 	(!(PINC & (1 << PC5)))
 #define BUTTON_ENTER_PRESSED 	(!(PINC & (1 << PC6)))
 #define BUTTON_EXIT_PRESSED 	(!(PINC & (1 << PC7)))
 
+#define ANY_BUTTON_PRESSED (BUTTON_PLUS_PRESSED||BUTTON_MINUS_PRESSED||BUTTON_ENTER_PRESSED||BUTTON_EXIT_PRESSED)
+#define ALL_BUTTONS_RELEASED (!ANY_BUTTON_PRESSED)
+
+
+#define MODE_EMERGENCY 1
+
+#define MODE_CALIBRATE 10
+#define MODE_MINIXG 11
+
+#define MODE_SET_O2 20
+#define MODE_SET_HE 21
+
+#define MODE_SET_BRIGHTNESS 50
+#define MODE_SET_CONTRAST 51
+#define MODE_SET_VALVE1 60
+#define MODE_SET_VALVE2 61
+#define MODE_RUN_TEST 70
 
 
 
-#define MODE_SET_MIX 0
-#define MODE_CALIBRATE 1
-#define MODE_MINIXG 2
-#define MODE_SETUP 3
-#define MODE_EMERGENCY 4
-
+// logic for menu:
+// turn on, check & calibrate -> set mix -> mix
+// calibrate -> set mix by "any key"
+// mix -> emergency (if compressor turned off or O2 > 40%)
+// mix -> set mix (if valves turned off)
+// set mix -> mix (if valves turned on and only in main menu)
+// set mix -> menu, on main switch turned off
+// no tuning when mixing
+// menu:
+// -set O2 (default last, set on exit) - show 
+// -set He (default 0, set only if selected (if selected - show last value, set on exit)
+// -switch between O2 and He on short press of Enter/Exit
+// -Longtap on Menu/Exit (if setting O2/He) - go to submenus, or go back to main menu
+// -shorttap on menu/exit - navigate between menu items, += - set values, store on menu leave
+// submenus: set brightness, contrast, rotate valve1, rotate valve2 (show O2 when rotating, valves turned on), run test
 
 #endif	// _INIT_H_
