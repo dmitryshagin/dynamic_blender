@@ -35,13 +35,9 @@ uint16_t oxygen2_target;
 
 // LCDprogressBar(i*3, 255, 16);
 
-//TODO - pass buttons status by link
 void process_buttons()
 {
 	if(BUTTON_PLUS_PRESSED){
-		//0xFF - задержка перед повторным нажатием (надо вынести в EEPROM)
-		//при анализе состояния смотрим, если 0 - не нажата, FF - зажата надолго, в промежутке - коротное нажатие
-		//применять воздействие в диапазоне 1-FE можно только один раз (нужен наверное флаг дополнительный)
 		if(buttons.buttonPlus < 0xFF){
 			buttons.buttonPlus++;
 		}
@@ -447,7 +443,7 @@ int main(void)
 					mode_setup_iteration = 2;
 				}
 			}
-			if(mode_setup_iteration==1){_delay_ms(50);} //just for some debounce	
+			if(mode_setup_iteration>0){_delay_ms(50);} //just for some debounce	
 
 		}
 
@@ -478,39 +474,81 @@ int main(void)
 		    	}
 		    }
 		    if(current_working_mode==MODE_SET_BRIGHTNESS){
-		    	if(system_config.brightness>0 && buttons.buttonMinus>0){
-		    		system_config.brightness-=1;
+		    	uint8_t diff=0;
+		    	if(buttons.buttonMinus>0){
+					if(buttons.buttonMinus==0xFF){
+						diff = 10;
+					}else{
+						diff = 1;
+					}
+					if(system_config.brightness>diff){
+						system_config.brightness-=diff;
+					}else{
+						if(system_config.brightness>0){
+							system_config.brightness=0;
+						}	
+					}
 		    	}
-		    	if(system_config.brightness<0xFF && buttons.buttonPlus>0){
-		    		system_config.brightness+=1;
-		    	}
-		    	if(system_config.brightness>10 && buttons.buttonMinus==0xFF){
-		    		system_config.brightness-=10;
-		    	}
-		    	if(system_config.brightness<0xF5 && buttons.buttonPlus==0xFF){
-		    		system_config.brightness+=10;
+
+
+		    	if(buttons.buttonPlus>0){
+					if(buttons.buttonPlus==0xFF){
+						diff = 10;
+					}else{
+						diff = 1;
+					}
+					if(system_config.brightness<(0xFF-diff)){
+						system_config.brightness+=diff;
+					}else{
+						if(system_config.brightness<0xFF){
+							system_config.brightness=0xFF;
+						}
+					}
 		    	}
 		    	sprintf(tmpstr,"%03u     ", system_config.brightness);
-				LCDGotoXY(5,1);
-				LCDstring((uint8_t *)tmpstr,8);
-		    	set_brightness(system_config.brightness);
+				LCDGotoXY(0,1);
+				LCDstring((uint8_t *)tmpstr,4);
+		    	LCDGotoXY(4,1);
+		    	LCDprogressBar(system_config.brightness, 255, 10);
+		    	set_brightness(system_config.brightness);		    	
 		    }
 		    if(current_working_mode==MODE_SET_CONTRAST){
-		    	if(system_config.contrast>0 && buttons.buttonMinus>0){
-		    		system_config.contrast-=1;
+		    	uint8_t diff=0;
+		    	if(buttons.buttonMinus>0){
+					if(buttons.buttonMinus==0xFF){
+						diff = 10;
+					}else{
+						diff = 1;
+					}
+					if(system_config.contrast>diff){
+						system_config.contrast-=diff;
+					}else{
+						if(system_config.contrast>0){
+							system_config.contrast=0;
+						}	
+					}
 		    	}
-		    	if(system_config.contrast<0xFF && buttons.buttonPlus>0){
-		    		system_config.contrast+=1;
-		    	}
-		    	if(system_config.contrast>10 && buttons.buttonMinus==0xFF){
-		    		system_config.contrast-=10;
-		    	}
-		    	if(system_config.contrast<0xF5 && buttons.buttonPlus==0xFF){
-		    		system_config.contrast+=10;
+
+
+		    	if(buttons.buttonPlus>0){
+					if(buttons.buttonPlus==0xFF){
+						diff = 10;
+					}else{
+						diff = 1;
+					}
+					if(system_config.contrast<(0xFF-diff)){
+						system_config.contrast+=diff;
+					}else{
+						if(system_config.contrast<0xFF){
+							system_config.contrast=0xFF;
+						}
+					}
 		    	}
 		    	sprintf(tmpstr,"%03u     ", system_config.contrast);
-				LCDGotoXY(5,1);
-				LCDstring((uint8_t *)tmpstr,8);
+				LCDGotoXY(0,1);
+				LCDstring((uint8_t *)tmpstr,4);
+		    	LCDGotoXY(4,1);
+		    	LCDprogressBar(system_config.contrast, 255, 10);
 		    	set_contrast(system_config.contrast);
 		    }
 		    if(current_working_mode==MODE_SET_O2){
