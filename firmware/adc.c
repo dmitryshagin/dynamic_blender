@@ -354,13 +354,13 @@ void adc_init_channel(uint8_t channel)
     // AD7793_WaitRdyGoLow();
  
     // AD7793_Calibrate(AD7793_MODE_CAL_INT_ZERO,
-                     // channel);      // Internal Zero-Scale Calibration
+    //                  channel);      // Internal Zero-Scale Calibration
     // AD7793_Calibrate(AD7793_MODE_CAL_INT_FULL,
-                     // channel);      // Internal Full-Scale Calibration
-    AD7793_SetRegisterValue(AD7793_REG_MODE,
-                        0x9, 
-                        2,
-                        1);
+    //                  channel);      // Internal Full-Scale Calibration
+    // AD7793_SetRegisterValue(AD7793_REG_MODE,
+    //                     0x9, 
+    //                     2,
+    //                     1);
 }   
 
 void adc_change_channel_and_trigger_delay(uint8_t channel)

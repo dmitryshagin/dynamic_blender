@@ -11,10 +11,14 @@
 
 typedef struct TARGET_MIX{
   uint16_t oxygen;
-  uint16_t helium;
-  uint16_t s1_target; //is calculated for desired mix. For Nitrox equals target_oxygen
-  uint16_t s2_target;
+  uint32_t helium;
 } targetMix_t;
+
+typedef struct SENSORS_TARGET_MIX{
+  uint32_t s1_target; //is calculated for desired mix. For Nitrox equals target_oxygen
+  uint32_t s2_target;
+} sensorsTargetMix_t;
+
 
 typedef struct SENSORS_DATA{	
 	uint32_t s1_uV;
@@ -30,11 +34,10 @@ typedef struct SYSTEM_CONFIG{
 	uint16_t min_servo_2;
 	uint16_t max_servo_1;
 	uint16_t max_servo_2;
-	uint8_t max_servo1_percent;
-	uint8_t max_servo2_percent;
 	uint16_t servo_timer_period_icr_top;
 	uint8_t brightness;
 	uint8_t contrast;
+	uint16_t oxygen_emergency_limit;
 } systemConfig_t;
 
 typedef struct BUTTONS_STATUS{
@@ -43,6 +46,7 @@ typedef struct BUTTONS_STATUS{
 } buttonsStatus_t;
 
 extern struct SYSTEM_CONFIG system_config;
+extern struct TARGET_MIX target;
 
 void init_outputs();
 
@@ -61,6 +65,8 @@ uint8_t check_emergency(uint16_t oxygen);
 void uart_init( void );
 
 void save_eeprom_data();
+
+void save_target_to_eeprom();
 
 
 #define VALVE1_ON 			(PORTB |=  (1<<PB2))
@@ -97,8 +103,7 @@ void save_eeprom_data();
 
 #define MODE_SET_BRIGHTNESS 50
 #define MODE_SET_CONTRAST 51
-#define MODE_SET_WARNING_LEVEL 52
-#define MODE_SET_EMERGENCY_LEVEL 53
+#define MODE_SET_EMERGENCY_LEVEL 52
 #define MODE_SET_VALVE1 60
 #define MODE_SET_VALVE2 61
 #define MODE_RUN_TEST 70

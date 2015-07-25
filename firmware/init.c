@@ -6,16 +6,21 @@
 #include "adc.h"
 #include "uart.h"
 
-// struct SYSTEM_CONFIG nv_system_config EEMEM = {95,95,660,660,100,100,5759,0x80,0xFF};
-//TODO - add target O2 and He here, it should be 16 bits each
-struct SYSTEM_CONFIG nv_system_config EEMEM = {95,95,660,660,100,100,5759,0x80,0xA0};
+// struct SYSTEM_CONFIG nv_system_config EEMEM = {95,95,660,660,5759,0x80,0xFF,45000};
+struct SYSTEM_CONFIG nv_system_config EEMEM = {95,95,660,660,5759,0x80,0xA0,45000};
 struct SYSTEM_CONFIG system_config;
 struct SYSTEM_CONFIG stored_system_config;
+
+struct TARGET_MIX nv_target EEMEM = {32000,0};
+struct TARGET_MIX target;
+struct TARGET_MIX stored_target;
+
 
 //it shuld be stored in EEPROM
 void load_eeprom_data()
 {
     eeprom_read_block((void*)&system_config, (const void*)&nv_system_config, sizeof(system_config));
+    eeprom_read_block((void*)&target, (const void*)&nv_target, sizeof(target));
 }
 
 void save_eeprom_data()
@@ -26,14 +31,25 @@ void save_eeprom_data()
         system_config.min_servo_2 != stored_system_config.min_servo_2 ||
         system_config.max_servo_1 != stored_system_config.max_servo_1 ||
         system_config.max_servo_2 != stored_system_config.max_servo_2 ||
-        system_config.max_servo1_percent != stored_system_config.max_servo1_percent ||
-        system_config.max_servo2_percent != stored_system_config.max_servo2_percent ||
         system_config.servo_timer_period_icr_top != stored_system_config.servo_timer_period_icr_top ||
         system_config.brightness != stored_system_config.brightness ||
-        system_config.contrast != stored_system_config.contrast){
+        system_config.contrast != stored_system_config.contrast||
+        system_config.oxygen_emergency_limit != stored_system_config.oxygen_emergency_limit){
         eeprom_write_block(&system_config, &nv_system_config, sizeof(system_config));
     }
 }
+
+void save_target_to_eeprom()
+{
+    eeprom_read_block((void*)&stored_target, (const void*)&nv_target, sizeof(stored_target));
+
+    if (stored_target.oxygen != target.oxygen ||
+        stored_target.helium != target.helium){
+        eeprom_write_block(&target, &nv_target, sizeof(target));
+    }
+
+}
+
 
 void init_outputs()
 {
@@ -125,6 +141,9 @@ void init()
     LCDclr();//clears LCD
     init_adc();
     uart0_init(UART_BAUD_SELECT(115200UL, F_CPU));
+    if(target.oxygen > 40000){
+        target.oxygen = 40000;
+    }
     // FILE uart_stream = FDEV_SETUP_STREAM(uart0_putc, uart0_getc, _FDEV_SETUP_RW);
     // stdout = stdin = &uart_stream;
     sei();
@@ -153,7 +172,7 @@ void set_servo(uint8_t servo, int16_t value)
 
 uint8_t check_emergency(uint16_t oxygen)
 {
-    if(!COMPRESSOR_IS_ON || (oxygen > 45000) ){
+    if(!COMPRESSOR_IS_ON || (oxygen > system_config.oxygen_emergency_limit*100) ){
         return 1;
     }    
     return 0;

@@ -17,8 +17,8 @@
 #define K_D     0.00
 struct PID_DATA pidData1; 
 struct PID_DATA pidData2;
-struct TARGET_MIX target; // should store in EEPROM
 struct SENSORS_DATA sensors;
+struct SENSORS_TARGET_MIX sensors_target;
 volatile struct BUTTONS_STATUS buttons;
 
 /////////////
@@ -70,7 +70,7 @@ ISR(TIMER0_OVF_vect)
 void process_adc_data()
 {
 	int64_t uV;
-	char tmpstr[8];
+	char tmpstr[20];
 	uV = (((int64_t)AD7793_ContinuousReadAvg(1) - 0x800000)*73125) / 0x800000;
     if(uV < 0){ uV = -uV; }
 	
@@ -244,19 +244,6 @@ void show_set_contrast(){
 	LCDstring("               -",16);
 }
 
-void show_set_warning_level(){
-	current_working_mode = MODE_SET_WARNING_LEVEL;
-	VALVE1_OFF;
-	VALVE2_OFF;
-	LED_VAVLE1_OFF;
-	LED_VAVLE2_OFF;
-	LCDGotoXY(0,0);
-	LCDstring("   Warning O2  +",16);
-	LCDGotoXY(0,1);
-	LCDstring("               -",16);
-}
-
-
 void show_set_emergency_level(){
 	current_working_mode = MODE_SET_EMERGENCY_LEVEL;
 	VALVE1_OFF;
@@ -293,19 +280,28 @@ void show_set_valve2(){
 	LCDstring("               -",16);
 }
 
+
 void show_mixing(){
 	current_working_mode = MODE_MINIXG;
 	if(target.oxygen > 0){
 		LED_VAVLE1_ON;
 		VALVE1_ON;
 	}
-	if(target.helium > 0){
+
+	char tmpstr[20];
+	uint8_t t_o2 = target.oxygen/1000UL;
+	uint8_t t_he = target.helium/1000UL;
+	if(target.helium > 0 && (sensors_target.s1_target!=sensors_target.s2_target)){
 		LED_VAVLE2_ON;
 		VALVE2_ON;
+		sprintf(tmpstr,"Mixing TmX %2u/%2u  ",  t_o2, t_he);
+	}else{
+		sprintf(tmpstr,"Mixing EANx%2u   ",  t_o2);
 	}
 	save_eeprom_data();
+	save_target_to_eeprom();
 	LCDGotoXY(0,0);
-	LCDstring("     Mixing     ",16);
+	LCDstring((uint8_t *)tmpstr,16);
 }
 
 
@@ -321,10 +317,13 @@ int main(void)
 	pid_Init(K_P * SCALING_FACTOR, K_I * SCALING_FACTOR , K_D * SCALING_FACTOR , &pidData1);
 	pid_Init(K_P * SCALING_FACTOR, K_I * SCALING_FACTOR , K_D * SCALING_FACTOR , &pidData2);
 
-	char tmpstr[8];
+	char tmpstr[20];
 	uint8_t mode_setup_iteration = 0;
 
-	target.oxygen = 32000;
+	uint8_t valve1_test = 0;
+	uint8_t valve2_test = 0;
+	sensors_target.s1_target=0;
+	sensors_target.s2_target=0;
 
 	for(;;){
 
@@ -366,21 +365,11 @@ int main(void)
 			}else
 			if(current_working_mode == MODE_SET_CONTRAST){
 				if(BUTTON_ENTER_PRESSED){
-					show_set_warning_level();
-					mode_setup_iteration = 1;
-				}else 
-				if(BUTTON_EXIT_PRESSED){
-					show_set_brightness();
-					mode_setup_iteration = 1;
-				}
-			}else
-			if(current_working_mode == MODE_SET_WARNING_LEVEL){
-				if(BUTTON_ENTER_PRESSED){
 					show_set_emergency_level();
 					mode_setup_iteration = 1;
 				}else 
 				if(BUTTON_EXIT_PRESSED){
-					show_set_contrast();
+					show_set_brightness();
 					mode_setup_iteration = 1;
 				}
 			}else
@@ -390,7 +379,7 @@ int main(void)
 					mode_setup_iteration = 1;
 				}else 
 				if(BUTTON_EXIT_PRESSED){
-					show_set_warning_level();
+					show_set_contrast();
 					mode_setup_iteration = 1;
 				}
 			}else
@@ -551,6 +540,190 @@ int main(void)
 		    	LCDprogressBar(system_config.contrast, 255, 10);
 		    	set_contrast(system_config.contrast);
 		    }
+		    if(current_working_mode==MODE_SET_EMERGENCY_LEVEL){
+		    	uint16_t diff=0;
+		    	if(buttons.buttonMinus>0){
+					if(buttons.buttonMinus==0xFF){
+						diff = 2000;
+					}else{
+						diff = 1000;
+					}
+					if(system_config.oxygen_emergency_limit>(21000+diff)){
+						system_config.oxygen_emergency_limit-=diff;
+					}else{
+						system_config.oxygen_emergency_limit=21000;
+					}
+		    	}
+
+
+		    	if(buttons.buttonPlus>0){
+					if(buttons.buttonPlus==0xFF){
+						diff = 2000;
+					}else{
+						diff = 1000;
+					}
+					if(system_config.oxygen_emergency_limit<(65000-diff)){
+						system_config.oxygen_emergency_limit+=diff;
+					}else{
+						system_config.oxygen_emergency_limit=65000;
+					}
+		    	}
+		    	uint8_t t_print = system_config.oxygen_emergency_limit/1000UL;
+		    	sprintf(tmpstr,"%02u%%", t_print);
+				LCDGotoXY(6,1);
+				LCDstring((uint8_t *)tmpstr,3);
+		    }
+		    if(current_working_mode==MODE_SET_VALVE1){
+		    	uint8_t diff=0;
+		    	if(buttons.buttonMinus>0){
+					if(buttons.buttonMinus==0xFF){
+						diff = 10;
+					}else{
+						diff = 1;
+					}
+					if(valve1_test>diff){
+						valve1_test-=diff;
+					}else{
+						valve1_test=0;
+					}
+		    	}
+
+
+		    	if(buttons.buttonPlus>0){
+					if(buttons.buttonPlus==0xFF){
+						diff = 10;
+					}else{
+						diff = 1;
+					}
+					if(valve1_test<(100-diff)){
+						valve1_test+=diff;
+					}else{
+						valve1_test=100;
+					}
+		    	}
+		    	sprintf(tmpstr,"%3u%%", valve1_test);
+				LCDGotoXY(0,1);
+				LCDstring((uint8_t *)tmpstr,4);
+		    	LCDGotoXY(4,1);
+		    	LCDprogressBar(valve1_test, 100, 10);
+				set_servo(SERVO1, valve1_test);
+		    }
+		    if(current_working_mode==MODE_SET_VALVE2){
+		    	uint8_t diff=0;
+		    	if(buttons.buttonMinus>0){
+					if(buttons.buttonMinus==0xFF){
+						diff = 10;
+					}else{
+						diff = 1;
+					}
+					if(valve2_test>diff){
+						valve2_test-=diff;
+					}else{
+						valve2_test=0;
+					}
+		    	}
+
+
+		    	if(buttons.buttonPlus>0){
+					if(buttons.buttonPlus==0xFF){
+						diff = 10;
+					}else{
+						diff = 1;
+					}
+					if(valve2_test<(100-diff)){
+						valve2_test+=diff;
+					}else{
+						valve2_test=100;
+					}
+		    	}
+		    	sprintf(tmpstr,"%3u%%", valve2_test);
+				LCDGotoXY(0,1);
+				LCDstring((uint8_t *)tmpstr,4);
+		    	LCDGotoXY(4,1);
+		    	LCDprogressBar(valve2_test, 100, 10);
+				set_servo(SERVO2, valve2_test);
+		    }
+		    if(current_working_mode==MODE_SET_O2){
+		    	uint16_t diff=0;
+		    	if(buttons.buttonMinus>0){
+					if(buttons.buttonMinus==0xFF){
+						diff = 2000;
+					}else{
+						diff = 1000;
+					}
+					if(target.oxygen>(2000+diff)){
+						target.oxygen-=diff;
+					}else{
+						target.oxygen=2000;
+					}
+		    	}
+
+
+		    	if(buttons.buttonPlus>0){
+					if(buttons.buttonPlus==0xFF){
+						diff = 2000;
+					}else{
+						diff = 1000;
+					}
+					if(target.oxygen<(system_config.oxygen_emergency_limit-diff-5000)){
+						target.oxygen+=diff;
+					}else{
+						target.oxygen=system_config.oxygen_emergency_limit-5000;
+					}
+		    	}
+		    	uint8_t t_print = target.oxygen/1000;
+		    	sprintf(tmpstr,"%02u%%", t_print);
+				LCDGotoXY(6,1);
+				LCDstring((uint8_t *)tmpstr,3);
+				if((target.oxygen+target.helium)>100000){
+					target.helium=100000-target.oxygen;
+				}
+				if(sensors_target.s1_target==sensors_target.s2_target){ //nitrox or trimix?
+					sensors_target.s1_target = target.oxygen;
+					sensors_target.s2_target = target.oxygen;		
+				}else{
+					sensors_target.s1_target = ((uint32_t)target.oxygen * 100UL) / (100 - (target.helium/1000UL));
+					sensors_target.s2_target = (uint16_t)target.oxygen;
+				}	
+		    }
+		    if(current_working_mode==MODE_SET_HE){
+		    	uint16_t diff=0;
+		    	if(buttons.buttonMinus>0){
+					if(buttons.buttonMinus==0xFF){
+						diff = 2000;
+					}else{
+						diff = 1000;
+					}
+					if(target.helium>diff){
+						target.helium-=diff;
+					}else{
+						target.helium=0;
+					}
+		    	}
+
+
+		    	if(buttons.buttonPlus>0){
+					if(buttons.buttonPlus==0xFF){
+						diff = 2000;
+					}else{
+						diff = 1000;
+					}
+					if(target.helium<(100000UL-target.oxygen-diff)){
+						target.helium+=diff;
+					}else{
+						target.helium=100000UL-target.oxygen;
+					}
+		    	}
+				uint8_t t_print = target.helium/1000;
+		    	sprintf(tmpstr,"%02u%%", t_print);
+		    	LCDGotoXY(6,1);
+				LCDstring((uint8_t *)tmpstr,3);
+
+				sensors_target.s1_target = ((uint32_t)target.oxygen * 100UL) / (100 - (target.helium/1000UL));
+				sensors_target.s2_target = (uint16_t)target.oxygen;
+			}
+
+
 		    if(current_working_mode==MODE_SET_O2){
 				// target.s1_target = ((uint32_t)target.oxygen * 100UL) * 1000UL / (100 - target.helium);
 				// target.s2_target = (uint16_t)target.oxygen * 1000;
@@ -589,9 +762,9 @@ int main(void)
 					// sprintf(tmpstr,"%6liuV", oxygen1_uV);
 					// LCDGotoXY(0,0);
 					// LCDstring((uint8_t *)tmpstr,8);
-					sprintf(tmpstr,"  %2li.%03li",  oxygen1_value/1000, oxygen1_value%1000);
+					sprintf(tmpstr,"O2:%2li.%01li He:%2li.%01li  ",  oxygen1_value/1000, (oxygen1_value%1000)/100, oxygen2_value/1000,(oxygen2_value%1000)/100);
 					LCDGotoXY(0,1);
-					LCDstring((uint8_t *)tmpstr,8);
+					LCDstring((uint8_t *)tmpstr,16);
 				}
 		    }
 		}
