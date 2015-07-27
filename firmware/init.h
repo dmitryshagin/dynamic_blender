@@ -9,6 +9,45 @@
 #define SERVO1 0
 #define SERVO2 1
 
+#define VALVE1_ON 			(PORTB |=  (1<<PB2))
+#define VALVE1_OFF 			(PORTB &= ~(1<<PB2))
+#define VALVE2_ON 			(PORTB |=  (1<<PB3))
+#define VALVE2_OFF 			(PORTB &= ~(1<<PB3))
+#define LED_VAVLE1_ON 		(PORTC |=  (1<<PC2))
+#define LED_VAVLE1_OFF 		(PORTC &= ~(1<<PC2))
+#define LED_VAVLE2_ON	 	(PORTC |=  (1<<PC0))
+#define LED_VAVLE2_OFF 		(PORTC &= ~(1<<PC0))
+#define LED_ALERT_ON 		(PORTC |=  (1<<PC1))
+#define LED_ALERT_OFF 		(PORTC &= ~(1<<PC1))
+#define BUZZER_ON 			(PORTC |=  (1<<PC3))
+#define BUZZER_OFF 			(PORTC &= ~(1<<PC3))
+#define COMPRESSOR_IS_ON  	(!(PIND  & (1<<PD2))) 
+#define FLOW_IS_ON  		(!(PIND  & (1<<PD3)))
+
+#define BUTTON_PLUS_PRESSED 	(!(PINC & (1 << PC4)))
+#define BUTTON_MINUS_PRESSED 	(!(PINC & (1 << PC5)))
+#define BUTTON_ENTER_PRESSED 	(!(PINC & (1 << PC6)))
+#define BUTTON_EXIT_PRESSED 	(!(PINC & (1 << PC7)))
+
+#define ANY_BUTTON_PRESSED (BUTTON_PLUS_PRESSED||BUTTON_MINUS_PRESSED||BUTTON_ENTER_PRESSED||BUTTON_EXIT_PRESSED)
+#define ALL_BUTTONS_RELEASED (!ANY_BUTTON_PRESSED)
+
+
+#define MODE_EMERGENCY 1
+
+#define MODE_CALIBRATE 10
+#define MODE_MIXING 11
+
+#define MODE_SET_O2 20
+#define MODE_SET_HE 21
+
+#define MODE_SET_BRIGHTNESS 50
+#define MODE_SET_CONTRAST 51
+#define MODE_SET_EMERGENCY_LEVEL 52
+#define MODE_SET_VALVE1 60
+#define MODE_SET_VALVE2 61
+#define MODE_RUN_TEST 70
+
 typedef struct TARGET_MIX{
   uint16_t oxygen;
   uint32_t helium;
@@ -49,6 +88,13 @@ typedef struct BUTTONS_STATUS{
 
 extern struct SYSTEM_CONFIG system_config;
 extern struct TARGET_MIX target;
+extern struct SENSORS_TARGET_MIX sensors_target;
+extern struct SENSORS_DATA s_data;
+extern struct BUTTONS_STATUS buttons;
+
+
+char tmpstr[20];
+
 
 void init_outputs();
 
@@ -66,49 +112,14 @@ uint8_t check_emergency(uint16_t oxygen);
 
 void uart_init( void );
 
+void test_outputs();
+
 void save_eeprom_data();
 
 void save_target_to_eeprom();
 
 
-#define VALVE1_ON 			(PORTB |=  (1<<PB2))
-#define VALVE1_OFF 			(PORTB &= ~(1<<PB2))
-#define VALVE2_ON 			(PORTB |=  (1<<PB3))
-#define VALVE2_OFF 			(PORTB &= ~(1<<PB3))
-#define LED_VAVLE1_ON 		(PORTC |=  (1<<PC2))
-#define LED_VAVLE1_OFF 		(PORTC &= ~(1<<PC2))
-#define LED_VAVLE2_ON	 	(PORTC |=  (1<<PC0))
-#define LED_VAVLE2_OFF 		(PORTC &= ~(1<<PC0))
-#define LED_ALERT_ON 		(PORTC |=  (1<<PC1))
-#define LED_ALERT_OFF 		(PORTC &= ~(1<<PC1))
-#define BUZZER_ON 			(PORTC |=  (1<<PC3))
-#define BUZZER_OFF 			(PORTC &= ~(1<<PC3))
-#define COMPRESSOR_IS_ON  	(!(PIND  & (1<<PD2))) 
-#define FLOW_IS_ON  		(!(PIND  & (1<<PD3)))
 
-#define BUTTON_PLUS_PRESSED 	(!(PINC & (1 << PC4)))
-#define BUTTON_MINUS_PRESSED 	(!(PINC & (1 << PC5)))
-#define BUTTON_ENTER_PRESSED 	(!(PINC & (1 << PC6)))
-#define BUTTON_EXIT_PRESSED 	(!(PINC & (1 << PC7)))
-
-#define ANY_BUTTON_PRESSED (BUTTON_PLUS_PRESSED||BUTTON_MINUS_PRESSED||BUTTON_ENTER_PRESSED||BUTTON_EXIT_PRESSED)
-#define ALL_BUTTONS_RELEASED (!ANY_BUTTON_PRESSED)
-
-
-#define MODE_EMERGENCY 1
-
-#define MODE_CALIBRATE 10
-#define MODE_MIXING 11
-
-#define MODE_SET_O2 20
-#define MODE_SET_HE 21
-
-#define MODE_SET_BRIGHTNESS 50
-#define MODE_SET_CONTRAST 51
-#define MODE_SET_EMERGENCY_LEVEL 52
-#define MODE_SET_VALVE1 60
-#define MODE_SET_VALVE2 61
-#define MODE_RUN_TEST 70
 
 
 #endif	// _INIT_H_

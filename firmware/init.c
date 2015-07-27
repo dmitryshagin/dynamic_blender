@@ -1,10 +1,12 @@
 #include <avr/interrupt.h>
 #include <avr/eeprom.h>
+#include <util/delay.h>
 #include <stdio.h>
 #include "init.h"
 #include "lcd.h"
 #include "adc.h"
 #include "uart.h"
+
 
 // struct SYSTEM_CONFIG nv_system_config EEMEM = {95,95,660,660,5759,0x80,0xFF,45000};
 struct SYSTEM_CONFIG nv_system_config EEMEM = {95,95,660,660,5759,0x80,0xA0,45000};
@@ -15,12 +17,46 @@ struct TARGET_MIX nv_target EEMEM = {32000,0};
 struct TARGET_MIX target;
 struct TARGET_MIX stored_target;
 
+struct SENSORS_DATA s_data;
+struct SENSORS_TARGET_MIX sensors_target;
+struct BUTTONS_STATUS buttons;
+
 
 //it shuld be stored in EEPROM
 void load_eeprom_data()
 {
     eeprom_read_block((void*)&system_config, (const void*)&nv_system_config, sizeof(system_config));
     eeprom_read_block((void*)&target, (const void*)&nv_target, sizeof(target));
+}
+
+
+void test_outputs(void)
+{
+    set_servo(SERVO1,0);
+    set_servo(SERVO2,0);
+    _delay_ms(500);
+    set_servo(SERVO1,100);
+    set_servo(SERVO2,100);
+    _delay_ms(1000);
+    set_servo(SERVO1,0);
+    _delay_ms(1000);
+    set_servo(SERVO2,0);
+    _delay_ms(1000);
+    VALVE1_ON;
+    LED_VAVLE1_ON;
+    _delay_ms(500); 
+    VALVE2_ON;
+    LED_VAVLE2_ON;
+    _delay_ms(500);
+    LED_ALERT_ON;
+    BUZZER_ON;
+    _delay_ms(500);
+    VALVE1_OFF;
+    VALVE2_OFF; 
+    LED_VAVLE1_OFF;
+    LED_VAVLE2_OFF;
+    LED_ALERT_OFF;
+    BUZZER_OFF; 
 }
 
 void save_eeprom_data()
