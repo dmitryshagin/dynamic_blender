@@ -68,54 +68,6 @@ void process_adc_data()
 }
 
 
-void process_uart(void){
-	int c;
-	c = uart0_getc();
-    if ( c & UART_NO_DATA )
-    {
-        /* 
-         * no data available from UART 
-         */
-    }
-    else
-    {
-        /*
-         * new data available from UART
-         * check for Frame or Overrun error
-         */
-        if ( c & UART_FRAME_ERROR )
-        {
-            /* Framing Error detected, i.e no stop bit detected */
-            uart0_puts("UART Frame Error: ");
-        }
-        if ( c & UART_OVERRUN_ERROR )
-        {
-            /* 
-             * Overrun, a character already present in the UART UDR register was 
-             * not read by the interrupt handler before the next character arrived,
-             * one or more received characters have been dropped
-             */
-            uart0_puts("UART Overrun Error: ");
-        }
-        if ( c & UART_BUFFER_OVERFLOW )
-        {
-            /* 
-             * We are not reading the receive buffer fast enough,
-             * one or more received character have been dropped 
-             */
-            uart0_puts("Buffer overflow error: ");
-        }
-        /* 
-         * send received character back
-         */
-         if ((uint8_t)c == '?'){
-         	uart0_puts("TODO: Put some debug info");
-         }
-        uart0_putc( (unsigned char)c );
-    }
-}
-
-
 int main(void)
 {
 	init();	
