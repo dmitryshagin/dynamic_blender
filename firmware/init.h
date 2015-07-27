@@ -17,6 +17,8 @@ typedef struct TARGET_MIX{
 typedef struct SENSORS_TARGET_MIX{
   uint32_t s1_target; //is calculated for desired mix. For Nitrox equals target_oxygen
   uint32_t s2_target;
+  uint8_t valve1_target;
+  uint8_t valve2_target;
 } sensorsTargetMix_t;
 
 
@@ -96,7 +98,7 @@ void save_target_to_eeprom();
 #define MODE_EMERGENCY 1
 
 #define MODE_CALIBRATE 10
-#define MODE_MINIXG 11
+#define MODE_MIXING 11
 
 #define MODE_SET_O2 20
 #define MODE_SET_HE 21
@@ -108,22 +110,5 @@ void save_target_to_eeprom();
 #define MODE_SET_VALVE2 61
 #define MODE_RUN_TEST 70
 
-
-
-// logic for menu:
-// turn on, check & calibrate -> set mix -> mix
-// calibrate -> set mix by "any key"
-// mix -> emergency (if compressor turned off or O2 > 40%)
-// mix -> set mix (if valves turned off)
-// set mix -> mix (if valves turned on and only in main menu)
-// set mix -> menu, on main switch turned off
-// no tuning when mixing
-// menu:
-// -set O2 (default last, set on exit) - show 
-// -set He (default 0, set only if selected (if selected - show last value, set on exit)
-// -switch between O2 and He on short press of Enter/Exit
-// -Longtap on Menu/Exit (if setting O2/He) - go to submenus, or go back to main menu
-// -shorttap on menu/exit - navigate between menu items, += - set values, store on menu leave
-// submenus: set brightness, contrast, rotate valve1, rotate valve2 (show O2 when rotating, valves turned on), run test
 
 #endif	// _INIT_H_
