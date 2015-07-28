@@ -27,6 +27,8 @@ void load_eeprom_data()
 {
     eeprom_read_block((void*)&system_config, (const void*)&nv_system_config, sizeof(system_config));
     eeprom_read_block((void*)&target, (const void*)&nv_target, sizeof(target));
+    sensors_target.s1_target = target.oxygen;
+    sensors_target.s2_target = target.oxygen;
 }
 
 
@@ -180,6 +182,8 @@ void init()
     if(target.oxygen > 40000){
         target.oxygen = 40000;
     }
+    while(ANY_BUTTON_PRESSED){;}
+    _delay_ms(150);
     // FILE uart_stream = FDEV_SETUP_STREAM(uart0_putc, uart0_getc, _FDEV_SETUP_RW);
     // stdout = stdin = &uart_stream;
     sei();
@@ -198,11 +202,13 @@ void set_servo(uint8_t servo, int16_t value)
     }
     if(servo==SERVO1)
     {
-        OCR1A = system_config.min_servo_1 + (system_config.max_servo_1 - system_config.min_servo_1)*100/value;
+        sensors_target.valve1_target = value;
+        OCR1A = system_config.min_servo_1 + (system_config.max_servo_1 - system_config.min_servo_1)*value/100;
     }
     else
     {
-        OCR1B = system_config.min_servo_2 + (system_config.max_servo_2 - system_config.min_servo_2)*100/value;
+        sensors_target.valve2_target = value;
+        OCR1B = system_config.min_servo_2 + (system_config.max_servo_2 - system_config.min_servo_2)*value/100;
     }
 }
 
@@ -213,3 +219,5 @@ uint8_t check_emergency(uint16_t oxygen)
     }    
     return 0;
 }
+
+

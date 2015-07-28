@@ -42,12 +42,26 @@ void show_run_test(){
     LCDstring("               >",16);
 }
 
+void show_start_calibrate(){
+    current_working_mode = MODE_START_CALIBRATE;
+    VALVE1_OFF;
+    VALVE2_OFF;
+    LED_VAVLE1_OFF;
+    LED_VAVLE2_OFF;
+    LCDGotoXY(0,0);
+    LCDstring("   Calibrate   >",16);
+    LCDGotoXY(0,1);
+    LCDstring("               >",16);    
+}
+
 void show_set_o2(){
     current_working_mode = MODE_SET_O2;
     VALVE1_OFF;
     VALVE2_OFF;
     LED_VAVLE1_OFF;
     LED_VAVLE2_OFF;
+    set_servo(SERVO1, 0);
+    set_servo(SERVO2, 0);
     LCDGotoXY(0,0);
     LCDstring("     Oxygen    +",16);
     LCDGotoXY(0,1);
@@ -129,10 +143,8 @@ void show_set_valve2(){
 
 void show_mixing(){
     current_working_mode = MODE_MIXING;
-    if(target.oxygen > 0){
-        LED_VAVLE1_ON;
-        VALVE1_ON;
-    }
+    LED_VAVLE1_ON;
+    VALVE1_ON;
 
     char tmpstr[20];
     uint8_t t_o2 = target.oxygen/1000UL;
@@ -201,7 +213,7 @@ void process_menu_selection(){
                 mode_setup_iteration = 1;
             }else 
             if(BUTTON_EXIT_PRESSED){
-                show_run_test();
+                show_start_calibrate();
                 mode_setup_iteration = 1;
             }
         }else
@@ -247,11 +259,21 @@ void process_menu_selection(){
         }else
         if(current_working_mode == MODE_RUN_TEST){
             if(BUTTON_ENTER_PRESSED){
-                show_set_brightness();
+                show_start_calibrate();
                 mode_setup_iteration = 1;
             }else 
             if(BUTTON_EXIT_PRESSED){
                 show_set_valve2();
+                mode_setup_iteration = 1;
+            }
+        }else
+        if(current_working_mode == MODE_START_CALIBRATE){
+            if(BUTTON_ENTER_PRESSED){
+                show_set_brightness();
+                mode_setup_iteration = 1;
+            }else 
+            if(BUTTON_EXIT_PRESSED){
+                show_run_test();
                 mode_setup_iteration = 1;
             }
         }
@@ -639,11 +661,16 @@ void process_menu_internal(){
         s_data.s1_coeff = O2_COEFF/s_data.s1_uV;
         s_data.s2_coeff = O2_COEFF/s_data.s2_uV;
         print_calibration_screen(s_data.s1_uV, s_data.s2_uV);
-        //TODO - вынести всё это на указатели на структуру
     }else
     if(current_working_mode==MODE_RUN_TEST){
         if(BUTTON_MINUS_PRESSED||BUTTON_PLUS_PRESSED){
             run_test();
+        }
+    }else
+    if(current_working_mode==MODE_START_CALIBRATE){
+        if(BUTTON_MINUS_PRESSED||BUTTON_PLUS_PRESSED){
+            current_working_mode=MODE_CALIBRATE;
+            while(ANY_BUTTON_PRESSED){;}
         }
     }else
     if(current_working_mode==MODE_SET_BRIGHTNESS){
@@ -680,6 +707,9 @@ void process_menu_internal(){
     }else
     if(current_working_mode==MODE_SET_HE){
         screen_set_helium();
+    }else
+    if(current_working_mode==MODE_START_CALIBRATE){
+        screen_start_calibrate();
     }
 
     if(current_working_mode==MODE_MIXING){

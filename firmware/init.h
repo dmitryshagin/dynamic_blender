@@ -47,6 +47,7 @@
 #define MODE_SET_VALVE1 60
 #define MODE_SET_VALVE2 61
 #define MODE_RUN_TEST 70
+#define MODE_START_CALIBRATE 71
 
 typedef struct TARGET_MIX{
   uint16_t oxygen;
@@ -117,7 +118,6 @@ void test_outputs();
 void save_eeprom_data();
 
 void save_target_to_eeprom();
-
 
 
 

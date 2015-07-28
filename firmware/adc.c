@@ -45,6 +45,8 @@
 /******************************************************************************/
 #include "adc.h"	   // AD7793 definitions.
 #include "spi.h"	   // Communication definitions.
+#include "init.h"
+ #include <util/delay.h>
 
 
 volatile uint8_t adc_current_channel = AD7793_CH_AIN1P_AIN1M;
@@ -351,16 +353,18 @@ void adc_init_channel(uint8_t channel)
 {
     adc_change_channel(channel, 1);
     //TODO - uncomment beofre real use
-    // AD7793_WaitRdyGoLow();
- 
-    // AD7793_Calibrate(AD7793_MODE_CAL_INT_ZERO,
-    //                  channel);      // Internal Zero-Scale Calibration
-    // AD7793_Calibrate(AD7793_MODE_CAL_INT_FULL,
-    //                  channel);      // Internal Full-Scale Calibration
-    // AD7793_SetRegisterValue(AD7793_REG_MODE,
-    //                     0x9, 
-    //                     2,
-    //                     1);
+    if(!BUTTON_ENTER_PRESSED){
+        AD7793_WaitRdyGoLow();
+     
+        AD7793_Calibrate(AD7793_MODE_CAL_INT_ZERO,
+                         channel);      // Internal Zero-Scale Calibration
+        AD7793_Calibrate(AD7793_MODE_CAL_INT_FULL,
+                         channel);      // Internal Full-Scale Calibration
+        AD7793_SetRegisterValue(AD7793_REG_MODE,
+                            0x9, 
+                            2,
+                            1);
+    }    
 }   
 
 void adc_change_channel_and_trigger_delay(uint8_t channel)
