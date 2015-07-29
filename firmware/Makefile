@@ -25,6 +25,8 @@ OBJECTS    = main.o lcd.o spi.o adc.o init.o pid.o uart.o menu.o
 FUSES      = -U hfuse:w:0xd8:m -U lfuse:w:0xff:m
 BAUD	   = 115200
 PORT       = /dev/tty.usbserial-A9CRRP59
+# PORT       = /dev/ttyUSB0
+
 # ATMega8 fuse bits used above (fuse bits for other devices are different!):
 # Example for 8 MHz internal oscillator
 # Fuse high byte:

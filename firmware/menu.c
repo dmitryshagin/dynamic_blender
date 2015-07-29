@@ -172,12 +172,12 @@ void show_mixing_submenu(){
     uint8_t s_he_target = sensors_target.s2_target/1000UL;
 
     LCDGotoXY(0,0);
-    sprintf(tmpstr,"t%02uc%02u st%02u %03u%%",  t_o2, curr_o2, s_o2_target, sensors_target.valve1_target);
+    sprintf(tmpstr,"t%02uc%02u st%02u v%03u",  t_o2, curr_o2, s_o2_target, sensors_target.valve1_target);
     LCDstring((uint8_t *)tmpstr,16);
 
     LCDGotoXY(0,1);
     if(sensors_target.s1_target!=sensors_target.s2_target){
-        sprintf(tmpstr,"t%02uc%02u st%02u %03u%%",  t_he, curr_he, s_he_target, sensors_target.valve2_target);
+        sprintf(tmpstr,"t%02uc%02u st%02u v%03u",  t_he, curr_he, s_he_target, sensors_target.valve2_target);
         LCDstring((uint8_t *)tmpstr,16);
     }else{
         LCDstring("                ",16);
@@ -454,17 +454,17 @@ void screen_set_valve1()
         }else{
             diff = 1;
         }
-        if(valve1_test<(100-diff)){
+        if(valve1_test<(0xFF-diff)){
             valve1_test+=diff;
         }else{
-            valve1_test=100;
+            valve1_test=0xFF;
         }
     }
-    sprintf(tmpstr,"%3u%%", valve1_test);
+    sprintf(tmpstr,"%3u ", valve1_test);
     LCDGotoXY(0,1);
     LCDstring((uint8_t *)tmpstr,4);
     LCDGotoXY(4,1);
-    LCDprogressBar(valve1_test, 100, 10);
+    LCDprogressBar(valve1_test, 0xFF, 10);
     set_servo(SERVO1, valve1_test);
 }
 
@@ -491,17 +491,17 @@ void screen_set_valve2()
         }else{
             diff = 1;
         }
-        if(valve2_test<(100-diff)){
+        if(valve2_test<(0xFF-diff)){
             valve2_test+=diff;
         }else{
-            valve2_test=100;
+            valve2_test=0xFF;
         }
     }
-    sprintf(tmpstr,"%3u%%", valve2_test);
+    sprintf(tmpstr,"%3u ", valve2_test);
     LCDGotoXY(0,1);
     LCDstring((uint8_t *)tmpstr,4);
     LCDGotoXY(4,1);
-    LCDprogressBar(valve2_test, 100, 10);
+    LCDprogressBar(valve2_test, 0xFF, 10);
     set_servo(SERVO2, valve2_test);
 }
 

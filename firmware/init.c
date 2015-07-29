@@ -37,8 +37,8 @@ void test_outputs(void)
     set_servo(SERVO1,0);
     set_servo(SERVO2,0);
     _delay_ms(500);
-    set_servo(SERVO1,100);
-    set_servo(SERVO2,100);
+    set_servo(SERVO1,0xFF);
+    set_servo(SERVO2,0xFF);
     _delay_ms(1000);
     set_servo(SERVO1,0);
     _delay_ms(1000);
@@ -192,23 +192,26 @@ void init()
 
 void set_servo(uint8_t servo, int16_t value)
 {
-    if(value>100)
+    if(value>0xFF)
     {
-        value = 100;
+        value = 0xFF;
     }
     if(value<0)
     {
         value = 0;
     }
+    uint32_t val;
     if(servo==SERVO1)
     {
         sensors_target.valve1_target = value;
-        OCR1A = system_config.min_servo_1 + (system_config.max_servo_1 - system_config.min_servo_1)*value/100;
+        val = system_config.min_servo_1 + (uint32_t)(system_config.max_servo_1 - system_config.min_servo_1)*(uint32_t)value/0xFF;
+        OCR1A = val;
     }
     else
     {
         sensors_target.valve2_target = value;
-        OCR1B = system_config.min_servo_2 + (system_config.max_servo_2 - system_config.min_servo_2)*value/100;
+        val = system_config.min_servo_2 + (uint32_t)(system_config.max_servo_2 - system_config.min_servo_2)*(uint32_t)value/0xFF;
+        OCR1B = val;
     }
 }
 

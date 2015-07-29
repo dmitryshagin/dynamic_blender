@@ -145,7 +145,7 @@ int main(void)
 		    uint8_t curr_o2 = s_data.s1_O2/1000UL;
 		    uint8_t s_o2_target = sensors_target.s1_target/1000UL;
 		    LCDGotoXY(0,0);
-		    sprintf(tmpstr,"S1: %02u, %02u, %02u, %03u%%\r\n",  t_o2, curr_o2, s_o2_target, sensors_target.valve1_target);
+		    sprintf(tmpstr,"S1: %02u, %02u, %02u, %03u\r\n",  t_o2, curr_o2, s_o2_target, sensors_target.valve1_target);
 			uart0_puts(tmpstr);
 			need_output = 0;	
 		}	
