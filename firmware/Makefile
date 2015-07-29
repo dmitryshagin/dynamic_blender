@@ -21,7 +21,7 @@ DEVICE     = atmega644p
 CLOCK      = 18432000UL
 PROGRAMMER = -c avr109
 PROGRAMMER_ISP = -c USBasp
-OBJECTS    = main.o lcd.o spi.o adc.o init.o pid.o uart.o menu.o
+OBJECTS    = main.o pid.o
 FUSES      = -U hfuse:w:0xd8:m -U lfuse:w:0xff:m
 BAUD	   = 115200
 PORT       = /dev/tty.usbserial-A9CRRP59
@@ -57,10 +57,13 @@ AVRDUDE_ISP = avrdude $(PROGRAMMER_ISP) -p $(DEVICE)
 AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE) -P $(PORT) -b $(BAUD) -v
 
 
-COMPILE = avr-gcc -Wall -Os -DF_CPU=$(CLOCK) -mmcu=$(DEVICE) -DUART_RX0_BUFFER_SIZE=128 -DUART_TX0_BUFFER_SIZE=128
+COMPILE = gcc -Wall -Os -DUART_RX0_BUFFER_SIZE=128 -DUART_TX0_BUFFER_SIZE=128
 
 # symbolic targets:
-all:	main.hex main.eep
+all:	tempp
+
+tempp:
+	gcc -o go main.c pid.c
 
 .c.o:
 	$(COMPILE) -c $< -o $@
@@ -99,6 +102,11 @@ clean:
 # file targets:
 main.elf: $(OBJECTS)
 	$(COMPILE) -o main.elf $(OBJECTS)
+
+main.hex: main.o
+	rm -f main.hex
+	avr-objcopy -j .text -j .data -O ihex main.elf main.hex
+	avr-size --format=avr --mcu=$(DEVICE) main.elf
 
 main.hex: main.elf
 	rm -f main.hex
