@@ -26,6 +26,9 @@ volatile uint16_t uptime_counter;
 volatile uint32_t uptime_seconds;
 volatile uint8_t fl_need_input;
 volatile uint8_t fl_need_output;
+volatile uint8_t fl_blink_5Hz = 0;
+uint8_t fl_need_blink = 0;
+uint8_t fl_need_buzz = 0;
 
 
 
@@ -46,9 +49,51 @@ ISR(TIMER0_OVF_vect)
     if(uptime_counter%250==0){
         fl_need_output = 1;        
     }   
+    if(uptime_counter%500==0){
+        fl_blink_5Hz = 1-fl_blink_5Hz;
+    }
     if(uptime_counter%1000==0){
         uptime_seconds+=1;
     }
+}
+
+uint8_t blink_5Hz(){
+    return fl_blink_5Hz;
+}
+
+void process_alert(){
+    if(blink_5Hz()){
+        if(need_blink()){
+            LED_ALERT_ON;
+        }
+        if(need_buzz()){
+            BUZZER_ON;
+        }
+    }else{
+        LED_ALERT_OFF;
+        BUZZER_OFF;
+    }
+}
+
+uint8_t need_blink(){
+    return fl_need_blink;
+}
+
+uint8_t need_buzz(){
+    return fl_need_buzz;
+}
+
+void reset_blink(){
+    fl_need_blink=0;
+}
+
+void reset_buzz(){
+    fl_need_buzz=0;
+}
+
+void set_alert(uint8_t blink, uint8_t buzz){
+    fl_need_blink=blink;
+    fl_need_buzz=buzz;
 }
 
 uint8_t need_input()
@@ -265,6 +310,33 @@ void set_servo(uint8_t servo, int16_t value)
         sensors_target.valve2_target = value;
         val = system_config.min_servo_2 + (uint32_t)(system_config.max_servo_2 - system_config.min_servo_2)*(uint32_t)value/0xFF;
         OCR1B = val;
+    }
+}
+
+void check_alert(){
+    if(target.real_oxygen > (target.oxygen+1000)){
+        set_alert(1,0);
+        if(target.real_oxygen > (target.oxygen+2000)){
+            set_alert(1,1);
+        } 
+    }
+    if(target.real_oxygen < (target.oxygen-1000)){
+        set_alert(1,0);
+        if(target.real_oxygen < (target.oxygen-2000)){
+            set_alert(1,1);
+        } 
+    }
+    if(target.real_helium > (target.helium+1000)){
+        set_alert(1,0);
+        if(target.real_helium > (target.helium+2000)){
+            set_alert(1,1);
+        } 
+    }
+    if(target.real_helium < (target.helium-1000)){
+        set_alert(1,0);
+        if(target.real_helium < (target.helium-2000)){
+            set_alert(1,1);
+        } 
     }
 }
 

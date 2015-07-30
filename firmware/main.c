@@ -125,6 +125,9 @@ int main(void)
 			uart0_puts(tmpstr);
 			reset_need_output();	
 		}	
+        if(get_current_working_mode()==MODE_MIXING){
+            process_alert();
+        }
 			
     }
     return 0;

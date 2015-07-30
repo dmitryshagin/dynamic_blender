@@ -221,6 +221,7 @@ void show_calibration_error(){
 void process_menu_selection(){
     if((current_working_mode == MODE_SET_O2 || current_working_mode == MODE_SET_HE) && COMPRESSOR_IS_ON && FLOW_IS_ON){
         show_mixing();
+        set_countdown_timer(30);
         mode_setup_iteration = 1;
     }else
     if(current_working_mode == MODE_MIXING && (!COMPRESSOR_IS_ON || !FLOW_IS_ON) ){
@@ -629,6 +630,7 @@ void scrren_set_o2_while_mixing()
     sensors_target.s2_target = target.oxygen;
     if(diff>0){
         show_mixing();
+        set_countdown_timer(10);
     }
 }
 
@@ -694,10 +696,6 @@ void screen_main_mixing()
             LCDstring("Compressor:  OFF",16);
         }
     }else{
-        // TODO - display some data, check valves and emergency states
-        // sprintf(tmpstr,"%6liuV", oxygen1_uV);
-        // LCDGotoXY(0,0);
-        // LCDstring((uint8_t *)tmpstr,8);
         if(mixing_submenu==0){
             show_mixing_headline();
             sprintf(tmpstr,"S1:%2li.%01li S2:%2li.%01li  ",  s_data.s1_O2/1000, (s_data.s1_O2%1000)/100, s_data.s2_O2/1000,(s_data.s2_O2%1000)/100);
@@ -706,6 +704,9 @@ void screen_main_mixing()
         }else{
             show_mixing_submenu();
         }   
+        if(get_seconds_left()==0){
+            check_alert();
+        }
     }
 }
 

@@ -133,5 +133,19 @@ uint8_t need_output();
 
 uint8_t is_calibrated_values_ok();
 
+uint8_t need_blink();
+
+uint8_t need_buzz();
+
+void reset_blink();
+
+void reset_buzz();
+
+void set_alert(uint8_t blink, uint8_t buzz);
+
+void process_alert();
+
+void check_alert();
+
 
 #endif	// _INIT_H_

@@ -26,4 +26,6 @@ uint8_t get_current_working_mode();
 
 void set_current_working_mode(uint8_t mode);
 
+void set_countdown_timer(uint8_t seconds);
+
 #endif	// _MENU_H_
