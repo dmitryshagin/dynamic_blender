@@ -4,6 +4,7 @@
 #include <avr/interrupt.h>
 #include "adc.h"
 #include "init.h"
+#include "lcd.h"
 #include "uart.h"
 #include "menu.h"
 

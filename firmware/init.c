@@ -6,6 +6,7 @@
 #include "lcd.h"
 #include "adc.h"
 #include "uart.h"
+#include "menu.h"
 
 
 // struct SYSTEM_CONFIG nv_system_config EEMEM = {95,95,660,660,5759,0x80,0xFF,45000};
@@ -246,23 +247,23 @@ void init_adc()
 {
     LCDclr();
     LCDGotoXY(3,0); 
-    LCDstring("Initing...",10);
+    LCDstring((uint8_t *)"Initing...",10);
     AD7793_Reset();
 
     if(!AD7793_Init())
     {
         LCDclr();
         LCDGotoXY(2,0);
-        LCDstring("ADC Error!",10);     
+        LCDstring((uint8_t *)"ADC Error!",10);     
         return;
     }
     
     LCDGotoXY(0,1); 
-    LCDstring("S1...",5);
+    LCDstring((uint8_t *)"S1...",5);
     adc_init_channel(AD7793_CH_AIN1P_AIN1M);
-    LCDstring("OK  S2...",9);
+    LCDstring((uint8_t *)"OK  S2...",9);
     adc_init_channel(AD7793_CH_AIN2P_AIN2M);    
-    LCDstring("OK",2);
+    LCDstring((uint8_t *)"OK",2);
     adc_current_channel = AD7793_CH_AIN1P_AIN1M;
     adc_change_channel_and_trigger_delay(adc_current_channel);
     LCDclr();

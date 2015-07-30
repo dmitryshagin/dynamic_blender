@@ -17,6 +17,7 @@
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 #include <util/delay.h>
+#include <stdio.h>
 #include "init.h"
 
 const uint8_t LcdCustomChar[] PROGMEM=//define 8 custom LCD chars
@@ -367,8 +368,8 @@ void print_calibration_screen(int32_t oxygen1_uV, int32_t oxygen2_uV, uint8_t ti
       LCDstring((uint8_t *)tmpstr,8);
     }else{
       LCDGotoXY(0,0);
-      LCDstring("Please, turn on ",16);
+      LCDstring((uint8_t *)"Please, turn on ",16);
       LCDGotoXY(0,1);
-      LCDstring("your compressor!",16);
+      LCDstring((uint8_t *)"your compressor!",16);
     }
 }

@@ -54,9 +54,9 @@ void show_run_test(){
     LED_VAVLE1_OFF;
     LED_VAVLE2_OFF;
     LCDGotoXY(0,0);
-    LCDstring("    Run Test   >",16);
+    LCDstring((uint8_t *)"    Run Test   >",16);
     LCDGotoXY(0,1);
-    LCDstring("                ",16);
+    LCDstring((uint8_t *)"                ",16);
 }
 
 void show_start_calibrate(){
@@ -66,9 +66,9 @@ void show_start_calibrate(){
     LED_VAVLE1_OFF;
     LED_VAVLE2_OFF;
     LCDGotoXY(0,0);
-    LCDstring("   Calibrate   >",16);
+    LCDstring((uint8_t *)"   Calibrate   >",16);
     LCDGotoXY(0,1);
-    LCDstring("                ",16);    
+    LCDstring((uint8_t *)"                ",16);    
 }
 
 void show_set_o2(){
@@ -80,9 +80,9 @@ void show_set_o2(){
     set_servo(SERVO1, 0);
     set_servo(SERVO2, 0);
     LCDGotoXY(0,0);
-    LCDstring("O2   Oxygen    +",16);
+    LCDstring((uint8_t *)"O2   Oxygen    +",16);
     LCDGotoXY(0,1);
-    LCDstring("He             -",16);
+    LCDstring((uint8_t *)"He             -",16);
 }
 
 void show_set_he(){
@@ -92,9 +92,9 @@ void show_set_he(){
     LED_VAVLE1_OFF;
     LED_VAVLE2_OFF;
     LCDGotoXY(0,0);
-    LCDstring("O2   Helium    +",16);
+    LCDstring((uint8_t *)"O2   Helium    +",16);
     LCDGotoXY(0,1);
-    LCDstring("He             -",16);
+    LCDstring((uint8_t *)"He             -",16);
 }
 
 void show_set_brightness(){
@@ -104,9 +104,9 @@ void show_set_brightness(){
     LED_VAVLE1_OFF;
     LED_VAVLE2_OFF; 
     LCDGotoXY(0,0);
-    LCDstring("  Brightness  +",16);
+    LCDstring((uint8_t *)"  Brightness  +",16);
     LCDGotoXY(0,1);
-    LCDstring("              -",16);
+    LCDstring((uint8_t *)"              -",16);
 }
 
 void show_set_contrast(){
@@ -116,9 +116,9 @@ void show_set_contrast(){
     LED_VAVLE1_OFF;
     LED_VAVLE2_OFF;
     LCDGotoXY(0,0);
-    LCDstring("    Contrast   +",16);
+    LCDstring((uint8_t *)"    Contrast   +",16);
     LCDGotoXY(0,1);
-    LCDstring("               -",16);
+    LCDstring((uint8_t *)"               -",16);
 }
 
 void show_set_emergency_level(){
@@ -128,9 +128,9 @@ void show_set_emergency_level(){
     LED_VAVLE1_OFF;
     LED_VAVLE2_OFF;
     LCDGotoXY(0,0);
-    LCDstring("  Emergency O2 +",16);
+    LCDstring((uint8_t *)"  Emergency O2 +",16);
     LCDGotoXY(0,1);
-    LCDstring("               -",16);
+    LCDstring((uint8_t *)"               -",16);
 }
 
 void show_set_valve1(){
@@ -140,9 +140,9 @@ void show_set_valve1(){
     LED_VAVLE1_ON;
     LED_VAVLE2_OFF;
     LCDGotoXY(0,0);
-    LCDstring("  Set O2 valve +",16);
+    LCDstring((uint8_t *)"  Set O2 valve +",16);
     LCDGotoXY(0,1);
-    LCDstring("               -",16);
+    LCDstring((uint8_t *)"               -",16);
 }
 
 void show_set_valve2(){
@@ -152,9 +152,9 @@ void show_set_valve2(){
     LED_VAVLE1_OFF;
     LED_VAVLE2_ON;
     LCDGotoXY(0,0);
-    LCDstring("  Set He valve +",16);
+    LCDstring((uint8_t *)"  Set He valve +",16);
     LCDGotoXY(0,1);
-    LCDstring("               -",16);
+    LCDstring((uint8_t *)"               -",16);
 }
 
 
@@ -163,17 +163,54 @@ void show_mixing(){
     LED_VAVLE1_ON;
     VALVE1_ON;
 
-    show_mixing_headline();
     save_eeprom_data();
     save_target_to_eeprom();
     show_mixing_headline();
 }
 
+void calclucate_real_gas_values(){
+    target.real_oxygen = s_data.s2_O2;
+    if(sensors_target.s1_target==sensors_target.s2_target){
+        target.real_helium = 0;
+    }else{
+        uint32_t res = ((((10000UL*(uint32_t)target.real_oxygen))/(s_data.s1_O2)))*10UL;
+        if(res > 100000UL){
+            target.real_helium = 0;
+        }else{
+            target.real_helium = 100000UL-res;
+        }
+    }    
+}
+
+void validate_o2_data(){
+    if(target.oxygen+5000>system_config.oxygen_emergency_limit){
+        target.oxygen=system_config.oxygen_emergency_limit-5000;
+    }
+    if(target.helium>get_helium_limit()){
+        target.helium=get_helium_limit();
+    }
+    if(sensors_target.s1_target==sensors_target.s2_target){ //nitrox or trimix?
+        sensors_target.s1_target = target.oxygen;
+        sensors_target.s2_target = target.oxygen;       
+    }else{
+        sensors_target.s1_target = ((uint32_t)target.oxygen * 100UL) / (100 - (target.helium/1000UL));
+        sensors_target.s2_target = (uint16_t)target.oxygen;
+    } 
+}
+
+uint32_t get_helium_limit(){
+    uint32_t res = ((((10000UL*(uint32_t)target.oxygen))/(system_config.oxygen_emergency_limit-2000)))*10UL;
+    if(res > 100000UL){
+        return 0;
+    }else{
+        return 100000UL-res;
+    }
+}    
+
 void show_mixing_headline(){
     char tmpstr[20];
     sprintf(tmpstr,"S1:%2li.%01li S2:%2li.%01li  ",  s_data.s1_O2/1000, (s_data.s1_O2%1000)/100, s_data.s2_O2/1000,(s_data.s2_O2%1000)/100);
-    target.real_oxygen = s_data.s2_O2;
-    target.real_helium = 100-(100*(uint32_t)target.real_oxygen)/s_data.s1_O2;
+    calclucate_real_gas_values();
     uint8_t t_o2 = target.oxygen/1000UL;
     uint8_t t_he = target.helium/1000UL;
     uint8_t c_o2 = target.real_oxygen/1000UL;
@@ -207,15 +244,15 @@ void show_mixing_submenu(){
         sprintf(tmpstr,"t%02uc%02u st%02u v%03u",  t_he, curr_he, s_he_target, sensors_target.valve2_target);
         LCDstring((uint8_t *)tmpstr,16);
     }else{
-        LCDstring("                ",16);
+        LCDstring((uint8_t *)"                ",16);
     }   
 }
 
 void show_calibration_error(){
     LED_ALERT_ON;
     LCDGotoXY(0,0);
-    LCDstring("Can't calibrate!",16);
-    LCDstring("Sensors failure!",16);
+    LCDstring((uint8_t *)"Can't calibrate!",16);
+    LCDstring((uint8_t *)"Sensors failure!",16);
 }
 
 void process_menu_selection(){
@@ -332,6 +369,7 @@ void process_menu_selection(){
         if(mode_setup_iteration == 1){
             if((current_working_mode >= 50 ) && (BUTTON_EXIT_PRESSED && BUTTON_ENTER_PRESSED)){
                 show_set_o2();
+                validate_o2_data();
                 save_eeprom_data();
                 mode_setup_iteration = 2;
             }   
@@ -351,12 +389,12 @@ void process_menu_selection(){
 void run_test()
 {
     LCDGotoXY(15,0);
-    LCDstring(" ",1);
+    LCDstring((uint8_t *)" ",1);
     LCDGotoXY(0,1);
-    LCDstring("   Checking...  ",16);
+    LCDstring((uint8_t *)"   Checking...  ",16);
     test_outputs();
     LCDGotoXY(0,1);
-    LCDstring("      DONE!     ",16);
+    LCDstring((uint8_t *)"      DONE!     ",16);
     _delay_ms(1000);
     show_run_test();
 }
@@ -394,11 +432,13 @@ void screen_set_brightness()
             }
         }
     }
-    sprintf(tmpstr,"%03u     ", system_config.brightness);
+    sprintf(tmpstr,"%03u ", system_config.brightness);
     LCDGotoXY(0,1);
     LCDstring((uint8_t *)tmpstr,4);
     LCDGotoXY(4,1);
     LCDprogressBar(system_config.brightness, 255, 10);
+    LCDGotoXY(14,1);
+    LCDstring((uint8_t *)" -",2);
     set_brightness(system_config.brightness); 
 }
 
@@ -435,11 +475,13 @@ void screen_set_contrast()
             }
         }
     }
-    sprintf(tmpstr,"%03u     ", system_config.contrast);
+    sprintf(tmpstr,"%03u ", system_config.contrast);
     LCDGotoXY(0,1);
     LCDstring((uint8_t *)tmpstr,4);
     LCDGotoXY(4,1);
     LCDprogressBar(system_config.contrast, 255, 10);
+    LCDGotoXY(14,1);
+    LCDstring((uint8_t *)" -",2);
     set_contrast(system_config.contrast);
 }
 
@@ -512,6 +554,8 @@ void screen_set_valve1()
     LCDstring((uint8_t *)tmpstr,4);
     LCDGotoXY(4,1);
     LCDprogressBar(valve1_test, 0xFF, 10);
+    LCDGotoXY(14,1);
+    LCDstring((uint8_t *)" -",2);
     set_servo(SERVO1, valve1_test);
 }
 
@@ -549,6 +593,8 @@ void screen_set_valve2()
     LCDstring((uint8_t *)tmpstr,4);
     LCDGotoXY(4,1);
     LCDprogressBar(valve2_test, 0xFF, 10);
+    LCDGotoXY(14,1);
+    LCDstring((uint8_t *)" -",2);
     set_servo(SERVO2, valve2_test);
 }
 
@@ -585,9 +631,8 @@ void screen_set_o2()
     sprintf(tmpstr,"%02u%%", t_print);
     LCDGotoXY(7,1);
     LCDstring((uint8_t *)tmpstr,3);
-    //TODO - limit helium more wizely, not to exceed 100% and not to exceed oxygen emergency level(-2%)
-    if((target.oxygen+target.helium)>100000){
-        target.helium=100000-target.oxygen;
+    if(target.helium>get_helium_limit()){
+        target.helium=get_helium_limit();
     }
     if(sensors_target.s1_target==sensors_target.s2_target){ //nitrox or trimix?
         sensors_target.s1_target = target.oxygen;
@@ -637,6 +682,7 @@ void scrren_set_o2_while_mixing()
 void screen_set_helium()
 {
     uint16_t diff=0;
+
     if(buttons.buttonMinus>0){
         if(buttons.buttonMinus==0xFF){
             diff = 2000;
@@ -657,12 +703,15 @@ void screen_set_helium()
         }else{
             diff = 1000;
         }
-        if(target.helium<(100000UL-target.oxygen-diff)){
+        
+        if(target.helium<(get_helium_limit()-diff)){
             target.helium+=diff;
         }else{
-            target.helium=100000UL-target.oxygen;
+            target.helium=get_helium_limit();
         }
     }
+
+
     uint8_t t_print = target.helium/1000;
     sprintf(tmpstr,"%02u%%", t_print);
     LCDGotoXY(7,1);
@@ -673,8 +722,6 @@ void screen_set_helium()
 
     //TODO - limit helium setup if s1_target>max-2%
     // helium_max = 100-(100*target.oxygen)/(emergency_limit-2%)
-    // helium_real = 100-(100*s2_real)/s1_real
-    // oxygen_real = s2_real
 }
 
 void screen_main_mixing()
@@ -688,12 +735,12 @@ void screen_main_mixing()
         LED_VAVLE1_OFF;
         LED_VAVLE2_OFF;
         LCDGotoXY(0,0);
-        LCDstring("   Emergency!   ",16);
+        LCDstring((uint8_t *)"   Emergency!   ",16);
         LCDGotoXY(0,1);
         if(COMPRESSOR_IS_ON){
-            LCDstring("  O2 too high!  ",16);
+            LCDstring((uint8_t *)"  O2 too high!  ",16);
         }else{
-            LCDstring("Compressor:  OFF",16);
+            LCDstring((uint8_t *)"Compressor:  OFF",16);
         }
     }else{
         if(mixing_submenu==0){
