@@ -360,12 +360,12 @@ void print_calibration_screen(int32_t oxygen1_uV, int32_t oxygen2_uV, uint8_t ti
     if(COMPRESSOR_IS_ON){
       char tmpstr[20];
       LCDGotoXY(0,0);
-      sprintf(tmpstr,"S1: %6liuV   >", oxygen1_uV);
-      LCDstring((uint8_t *)tmpstr,8);
+      sprintf(tmpstr,"S1: %5liuV    >", oxygen1_uV);
+      LCDstring((uint8_t *)tmpstr,16);
 
-      sprintf(tmpstr,"S2: %6liuV %2ds", oxygen2_uV, time_left);
+      sprintf(tmpstr,"S2: %5liuV  %2ds", oxygen2_uV, time_left);
       LCDGotoXY(0,1);
-      LCDstring((uint8_t *)tmpstr,8);
+      LCDstring((uint8_t *)tmpstr,16);
     }else{
       LCDGotoXY(0,0);
       LCDstring((uint8_t *)"Please, turn on ",16);

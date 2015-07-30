@@ -121,7 +121,7 @@ void save_eeprom_data();
 
 void save_target_to_eeprom();
 
-uint32_t get_uptime_seconds();
+uint16_t get_uptime_seconds();
 
 void reset_need_output();
 

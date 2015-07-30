@@ -11,8 +11,8 @@ uint8_t mode_setup_iteration = 0;
 uint8_t valve1_test = 0;
 uint8_t valve2_test = 0;
 
-uint32_t current_timer_mark = 0;
-uint8_t countdown_timer = 0;
+volatile uint16_t current_timer_mark = 0;
+volatile uint8_t countdown_timer = 0;
 
 
 void set_countdown_timer(uint8_t seconds){
@@ -33,14 +33,14 @@ void process_buttons()
 {
     if(BUTTON_PLUS_PRESSED){
         if(buttons.buttonPlus < 0xFF){
-            buttons.buttonPlus++;
+            buttons.buttonPlus+=0xF;
         }
     }else{
         buttons.buttonPlus=0;
     }
     if(BUTTON_MINUS_PRESSED){
         if(buttons.buttonMinus < 0xFF){
-            buttons.buttonMinus++;
+            buttons.buttonMinus+=0xF;
         }
     }else{
         buttons.buttonMinus=0;
@@ -77,6 +77,7 @@ void show_set_o2(){
     VALVE2_OFF;
     LED_VAVLE1_OFF;
     LED_VAVLE2_OFF;
+    set_alert(0,0);
     set_servo(SERVO1, 0);
     set_servo(SERVO2, 0);
     LCDGotoXY(0,0);
@@ -252,6 +253,7 @@ void show_calibration_error(){
     LED_ALERT_ON;
     LCDGotoXY(0,0);
     LCDstring((uint8_t *)"Can't calibrate!",16);
+    LCDGotoXY(0,1);
     LCDstring((uint8_t *)"Sensors failure!",16);
 }
 
@@ -266,7 +268,7 @@ void process_menu_selection(){
         mode_setup_iteration = 1;
     }
 
-    if(mode_setup_iteration==0 && ANY_BUTTON_PRESSED){
+    if(mode_setup_iteration==0){
         if(current_working_mode == MODE_CALIBRATE && COMPRESSOR_IS_ON &&
             (ANY_BUTTON_PRESSED || get_seconds_left()==0) ){
             if(is_calibrated_values_ok()){
@@ -281,8 +283,12 @@ void process_menu_selection(){
                 while(ANY_BUTTON_PRESSED){;}
                 LED_ALERT_OFF;
                 BUZZER_OFF;
+                set_countdown_timer(15);
             }
-        }else
+        }
+    }
+
+    if(mode_setup_iteration==0 && ANY_BUTTON_PRESSED){
         if(current_working_mode == MODE_SET_O2 && (BUTTON_ENTER_PRESSED)){
             show_set_he();
             mode_setup_iteration = 1;
@@ -675,6 +681,7 @@ void scrren_set_o2_while_mixing()
     sensors_target.s2_target = target.oxygen;
     if(diff>0){
         show_mixing();
+        set_alert(0,0);
         set_countdown_timer(10);
     }
 }
@@ -720,8 +727,6 @@ void screen_set_helium()
     sensors_target.s1_target = ((uint32_t)target.oxygen * 100UL) / (100 - (target.helium/1000UL));
     sensors_target.s2_target = (uint16_t)target.oxygen;
 
-    //TODO - limit helium setup if s1_target>max-2%
-    // helium_max = 100-(100*target.oxygen)/(emergency_limit-2%)
 }
 
 void screen_main_mixing()

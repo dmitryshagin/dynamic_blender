@@ -24,38 +24,40 @@ struct BUTTONS_STATUS buttons;
 
 volatile uint8_t timer0_counter;
 volatile uint16_t uptime_counter;
-volatile uint32_t uptime_seconds;
+volatile uint16_t uptime_seconds;
 volatile uint8_t fl_need_input;
 volatile uint8_t fl_need_output;
 volatile uint8_t fl_blink_5Hz = 0;
-uint8_t fl_need_blink = 0;
-uint8_t fl_need_buzz = 0;
+volatile uint8_t fl_need_blink = 0;
+volatile uint8_t fl_need_buzz = 0;
 
 
 
 ISR(TIMER0_OVF_vect)
 {
-    timer0_counter++;
     if(timer0_counter>=9){
         uptime_counter++;
         timer0_counter=0;
         check_adc_flags();
-    }
-    if(uptime_counter%50==0){
-        process_buttons();
-    }
-    if(uptime_counter%100==0){
-        fl_need_input = 1;     
+        if(uptime_counter%50==0){
+            if(uptime_counter%250==0){
+               fl_need_output = 1;        
+            }
+            process_buttons();
+        }
+    }else
+    if(timer0_counter==1){
+        if(uptime_counter%100==0){
+            if(uptime_counter%500==0){
+                if(uptime_counter%1000==0){
+                    uptime_seconds+=1;
+                }
+               fl_blink_5Hz = 1-fl_blink_5Hz;
+            }
+            fl_need_input = 1;     
+        } 
     }   
-    if(uptime_counter%250==0){
-        fl_need_output = 1;        
-    }   
-    if(uptime_counter%500==0){
-        fl_blink_5Hz = 1-fl_blink_5Hz;
-    }
-    if(uptime_counter%1000==0){
-        uptime_seconds+=1;
-    }
+    timer0_counter++;
 }
 
 uint8_t blink_5Hz(){
@@ -114,7 +116,7 @@ uint8_t need_output(){
     return fl_need_output;
 }
 
-uint32_t get_uptime_seconds()
+uint16_t get_uptime_seconds()
 {
     return uptime_seconds;
 }
@@ -315,30 +317,27 @@ void set_servo(uint8_t servo, int16_t value)
 }
 
 void check_alert(){
+    uint8_t bl=0;
+    uint8_t bz=0;
     if(target.real_oxygen > (target.oxygen+1000)){
-        set_alert(1,0);
-        if(target.real_oxygen > (target.oxygen+2000)){
-            set_alert(1,1);
-        } 
+        bl=1;
+        if(target.real_oxygen > (target.oxygen+2000)){bz=1;} 
     }
     if(target.real_oxygen < (target.oxygen-1000)){
-        set_alert(1,0);
-        if(target.real_oxygen < (target.oxygen-2000)){
-            set_alert(1,1);
-        } 
+        bl=1;
+        if(target.real_oxygen < (target.oxygen-2000)){bz=1;}
     }
-    if(target.real_helium > (target.helium+1000)){
-        set_alert(1,0);
-        if(target.real_helium > (target.helium+2000)){
-            set_alert(1,1);
-        } 
+    if(sensors_target.s1_target!=sensors_target.s2_target){
+        if(target.real_helium > (target.helium+1000)){
+            bl=1;
+            if(target.real_helium > (target.helium+2000)){bz=1;}
+        }
+        if(target.real_helium < (target.helium-1000)){
+            bl=1;
+            if(target.real_helium < (target.helium-2000)){bz=1;}
+        }
     }
-    if(target.real_helium < (target.helium-1000)){
-        set_alert(1,0);
-        if(target.real_helium < (target.helium-2000)){
-            set_alert(1,1);
-        } 
-    }
+    set_alert(bl,bz);
 }
 
 uint8_t check_emergency(uint16_t oxygen1, uint16_t oxygen2)
