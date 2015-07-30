@@ -81,7 +81,7 @@ void show_set_o2(){
     set_servo(SERVO1, 0);
     set_servo(SERVO2, 0);
     LCDGotoXY(0,0);
-    LCDstring((uint8_t *)"O2   Oxygen    +",16);
+    LCDstring((uint8_t *)"O2<  Oxygen    +",16);
     LCDGotoXY(0,1);
     LCDstring((uint8_t *)"He             -",16);
 }
@@ -95,7 +95,7 @@ void show_set_he(){
     LCDGotoXY(0,0);
     LCDstring((uint8_t *)"O2   Helium    +",16);
     LCDGotoXY(0,1);
-    LCDstring((uint8_t *)"He             -",16);
+    LCDstring((uint8_t *)"He<            -",16);
 }
 
 void show_set_brightness(){
@@ -273,8 +273,9 @@ void process_menu_selection(){
             (ANY_BUTTON_PRESSED || get_seconds_left()==0) ){
             if(is_calibrated_values_ok()){
                 show_set_o2();
-                mode_setup_iteration = 1;
                 while(ANY_BUTTON_PRESSED){;}
+                _delay_ms(100);
+                mode_setup_iteration = 1;
             }else{
                 show_calibration_error();
                 _delay_ms(2000);

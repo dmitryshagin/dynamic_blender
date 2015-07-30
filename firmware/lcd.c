@@ -371,5 +371,6 @@ void print_calibration_screen(int32_t oxygen1_uV, int32_t oxygen2_uV, uint8_t ti
       LCDstring((uint8_t *)"Please, turn on ",16);
       LCDGotoXY(0,1);
       LCDstring((uint8_t *)"your compressor!",16);
+      set_countdown_timer(15);
     }
 }
