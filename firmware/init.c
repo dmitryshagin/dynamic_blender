@@ -21,6 +21,59 @@ struct SENSORS_DATA s_data;
 struct SENSORS_TARGET_MIX sensors_target;
 struct BUTTONS_STATUS buttons;
 
+volatile uint8_t timer0_counter;
+volatile uint16_t uptime_counter;
+volatile uint32_t uptime_seconds;
+volatile uint8_t fl_need_input;
+volatile uint8_t fl_need_output;
+
+
+
+ISR(TIMER0_OVF_vect)
+{
+    timer0_counter++;
+    if(timer0_counter>=9){
+        uptime_counter++;
+        timer0_counter=0;
+        check_adc_flags();
+    }
+    if(uptime_counter%50==0){
+        process_buttons();
+    }
+    if(uptime_counter%100==0){
+        fl_need_input = 1;     
+    }   
+    if(uptime_counter%250==0){
+        fl_need_output = 1;        
+    }   
+    if(uptime_counter%1000==0){
+        uptime_seconds+=1;
+    }
+}
+
+uint8_t need_input()
+{
+    return fl_need_input;
+}
+
+void reset_need_output(){
+    fl_need_output=0;
+}
+
+void reset_need_input(){
+    fl_need_input=0;
+}
+
+uint8_t need_output(){
+    return fl_need_output;
+}
+
+uint32_t get_uptime_seconds()
+{
+    return uptime_seconds;
+}
+
+
 
 //it shuld be stored in EEPROM
 void load_eeprom_data()
@@ -160,9 +213,9 @@ void init_adc()
     }
     
     LCDGotoXY(0,1); 
-    LCDstring("C1...",5);
+    LCDstring("S1...",5);
     adc_init_channel(AD7793_CH_AIN1P_AIN1M);
-    LCDstring("OK  C2...",9);
+    LCDstring("OK  S2...",9);
     adc_init_channel(AD7793_CH_AIN2P_AIN2M);    
     LCDstring("OK",2);
     adc_current_channel = AD7793_CH_AIN1P_AIN1M;
@@ -215,12 +268,22 @@ void set_servo(uint8_t servo, int16_t value)
     }
 }
 
-uint8_t check_emergency(uint16_t oxygen)
+uint8_t check_emergency(uint16_t oxygen1, uint16_t oxygen2)
 {
-    if(!COMPRESSOR_IS_ON || (oxygen > system_config.oxygen_emergency_limit*100) ){
+    if(!COMPRESSOR_IS_ON 
+            || (oxygen1 > system_config.oxygen_emergency_limit*100)
+            || (oxygen2 > system_config.oxygen_emergency_limit*100) ){
         return 1;
     }    
     return 0;
 }
 
-
+uint8_t is_calibrated_values_ok(){
+    if(s_data.s1_uV<6000 || s_data.s1_uV>29000){
+        return 0;
+    }
+    if(s_data.s2_uV<6000 || s_data.s2_uV>29000){
+        return 0;
+    }
+    return 1;
+}

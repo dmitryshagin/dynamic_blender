@@ -354,18 +354,16 @@ void LCDprogressBar(uint8_t progress, uint8_t maxprogress, uint8_t length)
 
 }
 
-void print_calibration_screen(int32_t oxygen1_uV, int32_t oxygen2_uV)
+void print_calibration_screen(int32_t oxygen1_uV, int32_t oxygen2_uV, uint8_t time_left)
 {
     if(COMPRESSOR_IS_ON){
-      char tmpstr[8];
+      char tmpstr[20];
       LCDGotoXY(0,0);
-      LCDstring(" Oxygen  Helium ",16);
-      sprintf(tmpstr,"%6liuV", oxygen1_uV);
-      LCDGotoXY(0,1);
+      sprintf(tmpstr,"S1: %6liuV   >", oxygen1_uV);
       LCDstring((uint8_t *)tmpstr,8);
 
-      sprintf(tmpstr,"%6liuV", oxygen2_uV);
-      LCDGotoXY(8,1);
+      sprintf(tmpstr,"S2: %6liuV %2ds", oxygen2_uV, time_left);
+      LCDGotoXY(0,1);
       LCDstring((uint8_t *)tmpstr,8);
     }else{
       LCDGotoXY(0,0);

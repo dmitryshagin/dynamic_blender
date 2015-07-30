@@ -52,6 +52,8 @@
 typedef struct TARGET_MIX{
   uint16_t oxygen;
   uint32_t helium;
+  uint16_t real_oxygen;
+  uint32_t real_helium;
 } targetMix_t;
 
 typedef struct SENSORS_TARGET_MIX{
@@ -109,7 +111,7 @@ void set_brightness(uint8_t value);
 
 void set_contrast(uint8_t value);
 
-uint8_t check_emergency(uint16_t oxygen);
+uint8_t check_emergency(uint16_t oxygen1, uint16_t oxygen2);
 
 void uart_init( void );
 
@@ -119,7 +121,17 @@ void save_eeprom_data();
 
 void save_target_to_eeprom();
 
+uint32_t get_uptime_seconds();
 
+void reset_need_output();
+
+void reset_need_input();
+
+uint8_t need_input();
+
+uint8_t need_output();
+
+uint8_t is_calibrated_values_ok();
 
 
 #endif	// _INIT_H_

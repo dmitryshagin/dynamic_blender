@@ -352,7 +352,6 @@ void adc_change_channel(uint8_t channel, uint8_t use_bias)
 void adc_init_channel(uint8_t channel)
 {
     adc_change_channel(channel, 1);
-    //TODO - uncomment beofre real use
     if(!BUTTON_ENTER_PRESSED){
         AD7793_WaitRdyGoLow();
      

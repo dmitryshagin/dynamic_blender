@@ -95,7 +95,7 @@ void LCDcursorRight(uint8_t);	//shif cursor right by n
 //adapted from AVRLIB - displays progress only for 8 bit variables
 void LCDprogressBar(uint8_t progress, uint8_t maxprogress, uint8_t length);
 
-void print_calibration_screen(int32_t oxygen1_uV, int32_t oxygen2_uV);
+void print_calibration_screen(int32_t oxygen1_uV, int32_t oxygen2_uV,uint8_t time_left);
 
 
 #endif

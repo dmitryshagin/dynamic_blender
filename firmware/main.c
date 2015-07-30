@@ -8,7 +8,6 @@
 #include "menu.h"
 
 
-
 //COPYPASTED PID
 // should store in EEPROM
 #define K_P     1.00
@@ -16,32 +15,7 @@
 #define K_D     0.00
 struct PID_DATA pidData1; 
 struct PID_DATA pidData2;
-struct SENSORS_DATA sensors;
 
-volatile uint8_t timer0_counter;
-volatile uint16_t uptime_counter;
-volatile uint8_t need_input;
-volatile uint8_t need_output;
-
-
-ISR(TIMER0_OVF_vect)
-{
-    timer0_counter++;
-    if(timer0_counter>=9){
-    	uptime_counter++;
-    	timer0_counter=0;
-    	check_adc_flags();
-    }
-    if(uptime_counter%50==0){
-    	process_buttons();
-    }
-    if(uptime_counter%100==0){
-		need_input = 1;		
-	}	
-    if(uptime_counter%250==0){
-		need_output = 1;		
-	}	
-}
 
 void process_adc_data()
 {
@@ -58,7 +32,6 @@ void process_adc_data()
 		    inputValue = pid_Controller((uint16_t)(sensors_target.s1_target/10), (uint16_t)(s_data.s1_O2/10), &pidData1);
 		    set_servo(SERVO1, inputValue);
 		}
-
 	}else{
 		s_data.s2_uV = uV;
 		s_data.s2_O2 = s_data.s2_uV * s_data.s2_coeff / 10000;
@@ -125,6 +98,8 @@ int main(void)
 	char tmpstr[25];
 	init();	
 	set_current_working_mode(MODE_CALIBRATE);
+    set_countdown_timer(15);
+
 	uart0_puts("Welcome to blender :)\r\n");
 
 	pid_Init(K_P * SCALING_FACTOR, K_I * SCALING_FACTOR , K_D * SCALING_FACTOR , &pidData1);
@@ -132,22 +107,23 @@ int main(void)
 
 	for(;;){
 		process_uart();
-	    if(adc_ready>0){ process_adc_data(); }
+	    if(adc_ready>0){ 
+            process_adc_data(); 
+        }
 	    process_menu_selection();
 
-		if(need_input){ // 10 times per cesond
+		if(need_input()){ // 10 times per second
 			process_menu_internal();
-			need_input = 0;
+			reset_need_input();
 		}
-		if(need_output){
-
+		if(need_output()){
 		    uint8_t t_o2 = target.oxygen/1000UL;
 		    uint8_t curr_o2 = s_data.s1_O2/1000UL;
 		    uint8_t s_o2_target = sensors_target.s1_target/1000UL;
 		    LCDGotoXY(0,0);
 		    sprintf(tmpstr,"S1: %02u, %02u, %02u, %03u\r\n",  t_o2, curr_o2, s_o2_target, sensors_target.valve1_target);
 			uart0_puts(tmpstr);
-			need_output = 0;	
+			reset_need_output();	
 		}	
 			
     }
