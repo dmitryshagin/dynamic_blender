@@ -94,10 +94,13 @@ extern struct TARGET_MIX target;
 extern struct SENSORS_TARGET_MIX sensors_target;
 extern struct SENSORS_DATA s_data;
 extern struct BUTTONS_STATUS buttons;
+extern uint32_t log_windows[2][10];
+extern uint8_t  log_position[2];
 
 
 char tmpstr[20];
 
+uint8_t is_log_ok();
 
 void init_outputs();
 

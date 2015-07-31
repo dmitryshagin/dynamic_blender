@@ -21,6 +21,8 @@ struct TARGET_MIX stored_target;
 struct SENSORS_DATA s_data;
 struct SENSORS_TARGET_MIX sensors_target;
 struct BUTTONS_STATUS buttons;
+uint32_t log_windows[2][10];
+uint8_t  log_position[2];
 
 volatile uint8_t timer0_counter;
 volatile uint16_t uptime_counter;
@@ -30,7 +32,7 @@ volatile uint8_t fl_need_output;
 volatile uint8_t fl_blink_5Hz = 0;
 volatile uint8_t fl_need_blink = 0;
 volatile uint8_t fl_need_buzz = 0;
-
+uint32_t min_s1, min_s2, max_s1, max_s2;
 
 
 ISR(TIMER0_OVF_vect)
@@ -59,6 +61,7 @@ ISR(TIMER0_OVF_vect)
     }   
     timer0_counter++;
 }
+
 
 uint8_t blink_5Hz(){
     return fl_blink_5Hz;
@@ -351,11 +354,30 @@ uint8_t check_emergency(uint16_t oxygen1, uint16_t oxygen2)
 }
 
 uint8_t is_calibrated_values_ok(){
-    if(s_data.s1_uV<6000 || s_data.s1_uV>29000){
-        return 0;
+    // if(s_data.s1_uV<6000 || s_data.s1_uV>29000){
+    //     return 0;
+    // }
+    // if(s_data.s2_uV<6000 || s_data.s2_uV>29000){
+    //     return 0;
+    // }
+    // return 1;
+
+    uint8_t i;
+    min_s1=log_windows[0][0];
+    min_s2=log_windows[1][0];
+    max_s1=min_s1;
+    max_s2=min_s2;
+    for (i = 0; i < 10; ++i)
+    {
+        if( log_windows[0][i] < min_s1 ){ min_s1 = log_windows[0][i]; }
+        if( log_windows[0][i] > max_s1 ){ max_s1 = log_windows[0][i]; }
+        if( log_windows[1][i] < min_s2 ){ min_s2 = log_windows[0][i]; }
+        if( log_windows[1][i] > max_s2 ){ max_s2 = log_windows[0][i]; }
     }
-    if(s_data.s2_uV<6000 || s_data.s2_uV>29000){
-        return 0;
-    }
+    if( (max_s1-min_s1) > 1000 ){ return 0;}
+    if( (max_s2-min_s2) > 1000 ){ return 0;}
+    if( (min_s1 < 6000) || (min_s2 < 6000) ){ return 0; }
+    if( (max_s2 > 29000) || (max_s2 > 29000) ){ return 0; }
     return 1;
+
 }

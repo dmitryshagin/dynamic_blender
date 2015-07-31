@@ -28,19 +28,23 @@ void process_adc_data()
 	if(adc_current_channel == AD7793_CH_AIN1P_AIN1M){
 		s_data.s1_uV = uV;
 		s_data.s1_O2 = s_data.s1_uV * s_data.s1_coeff / 10000;
+        log_windows[0][log_position[0]] = s_data.s1_uV;
 		adc_current_channel = AD7793_CH_AIN2P_AIN2M;
 		if(get_current_working_mode() == MODE_MIXING){
 		    inputValue = pid_Controller((uint16_t)(sensors_target.s1_target/10), (uint16_t)(s_data.s1_O2/10), &pidData1);
 		    set_servo(SERVO1, inputValue);
 		}
+        if(log_position[0]++>9){log_position[0]=0;}
 	}else{
 		s_data.s2_uV = uV;
 		s_data.s2_O2 = s_data.s2_uV * s_data.s2_coeff / 10000;
+        log_windows[1][log_position[1]] = s_data.s2_uV;
 		adc_current_channel = AD7793_CH_AIN1P_AIN1M;
 		if(get_current_working_mode() == MODE_MIXING && (sensors_target.s1_target!=sensors_target.s2_target)){
 		    inputValue = pid_Controller((uint16_t)(sensors_target.s2_target/10), (uint16_t)(s_data.s2_O2/10), &pidData2);
 		    set_servo(SERVO2, inputValue);
 		}
+        if(log_position[1]++>9){log_position[1]=0;}
 	}				
     adc_change_channel_and_trigger_delay(adc_current_channel);
 }
