@@ -114,7 +114,7 @@ void set_brightness(uint8_t value);
 
 void set_contrast(uint8_t value);
 
-uint8_t check_emergency(uint16_t oxygen1, uint16_t oxygen2);
+uint8_t check_emergency();
 
 void uart_init( void );
 
@@ -149,6 +149,8 @@ void set_alert(uint8_t blink, uint8_t buzz);
 void process_alert();
 
 void check_alert();
+
+uint32_t get_max_deviation();
 
 
 #endif	// _INIT_H_

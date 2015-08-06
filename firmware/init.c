@@ -42,7 +42,7 @@ ISR(TIMER0_OVF_vect)
         timer0_counter=0;
         check_adc_flags();
         if(uptime_counter%50==0){
-            if(uptime_counter%250==0){
+            if(uptime_counter%50==0){
                fl_need_output = 1;        
             }
             process_buttons();
@@ -309,13 +309,13 @@ void set_servo(uint8_t servo, int16_t value)
     {
         sensors_target.valve1_target = value;
         val = system_config.min_servo_1 + (uint32_t)(system_config.max_servo_1 - system_config.min_servo_1)*(uint32_t)value/0xFF;
-        OCR1A = val;
+        OCR1B = val;
     }
     else
     {
         sensors_target.valve2_target = value;
         val = system_config.min_servo_2 + (uint32_t)(system_config.max_servo_2 - system_config.min_servo_2)*(uint32_t)value/0xFF;
-        OCR1B = val;
+        OCR1A = val;
     }
 }
 
@@ -343,25 +343,25 @@ void check_alert(){
     set_alert(bl,bz);
 }
 
-uint8_t check_emergency(uint16_t oxygen1, uint16_t oxygen2)
+uint8_t check_emergency()
 {
     if(!COMPRESSOR_IS_ON 
-            || (oxygen1 > system_config.oxygen_emergency_limit*100)
-            || (oxygen2 > system_config.oxygen_emergency_limit*100) ){
+            || (s_data.s1_O2 > system_config.oxygen_emergency_limit)
+            || (s_data.s2_O2 > system_config.oxygen_emergency_limit) ){
         return 1;
     }    
     return 0;
 }
 
 uint8_t is_calibrated_values_ok(){
-    // if(s_data.s1_uV<6000 || s_data.s1_uV>29000){
-    //     return 0;
-    // }
-    // if(s_data.s2_uV<6000 || s_data.s2_uV>29000){
-    //     return 0;
-    // }
-    // return 1;
+    if( get_max_deviation() > 500 ){ return 0;}
+    if( (min_s1 < 6000) || (min_s2 < 6000) ){ return 0; }
+    if( (max_s2 > 29000) || (max_s2 > 29000) ){ return 0; }
+    return 1;
 
+}
+
+uint32_t get_max_deviation(){
     uint8_t i;
     min_s1=log_windows[0][0];
     min_s2=log_windows[1][0];
@@ -371,13 +371,13 @@ uint8_t is_calibrated_values_ok(){
     {
         if( log_windows[0][i] < min_s1 ){ min_s1 = log_windows[0][i]; }
         if( log_windows[0][i] > max_s1 ){ max_s1 = log_windows[0][i]; }
-        if( log_windows[1][i] < min_s2 ){ min_s2 = log_windows[0][i]; }
-        if( log_windows[1][i] > max_s2 ){ max_s2 = log_windows[0][i]; }
+        if( log_windows[1][i] < min_s2 ){ min_s2 = log_windows[1][i]; }
+        if( log_windows[1][i] > max_s2 ){ max_s2 = log_windows[1][i]; }
     }
-    if( (max_s1-min_s1) > 1000 ){ return 0;}
-    if( (max_s2-min_s2) > 1000 ){ return 0;}
-    if( (min_s1 < 6000) || (min_s2 < 6000) ){ return 0; }
-    if( (max_s2 > 29000) || (max_s2 > 29000) ){ return 0; }
-    return 1;
+    if( (max_s1-min_s1) >  (max_s2-min_s2) ){
+        return (max_s1-min_s1);
+    }else{
+        return (max_s2-min_s2);
+    }
 
 }

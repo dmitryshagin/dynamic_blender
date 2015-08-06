@@ -19,6 +19,7 @@
 #include <util/delay.h>
 #include <stdio.h>
 #include "init.h"
+#include "menu.h"
 
 const uint8_t LcdCustomChar[] PROGMEM=//define 8 custom LCD chars
 {

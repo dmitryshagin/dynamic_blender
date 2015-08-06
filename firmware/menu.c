@@ -164,6 +164,10 @@ void show_mixing(){
     LED_VAVLE1_ON;
     VALVE1_ON;
 
+    //TODO - remove IRL
+    // LED_VAVLE2_ON;
+    // VALVE2_ON;
+
     save_eeprom_data();
     save_target_to_eeprom();
     show_mixing_headline();
@@ -241,12 +245,12 @@ void show_mixing_submenu(){
     LCDstring((uint8_t *)tmpstr,16);
 
     LCDGotoXY(0,1);
-    if(sensors_target.s1_target!=sensors_target.s2_target){
+    // if(sensors_target.s1_target!=sensors_target.s2_target){
         sprintf(tmpstr,"t%02uc%02u st%02u v%03u",  t_he, curr_he, s_he_target, sensors_target.valve2_target);
         LCDstring((uint8_t *)tmpstr,16);
-    }else{
-        LCDstring((uint8_t *)"                ",16);
-    }   
+    // }else{
+        // LCDstring((uint8_t *)"                ",16);
+    // }   
 }
 
 void show_calibration_error(){
@@ -271,6 +275,12 @@ void process_menu_selection(){
     if(mode_setup_iteration==0){
         if(current_working_mode == MODE_CALIBRATE && COMPRESSOR_IS_ON &&
             (ANY_BUTTON_PRESSED || get_seconds_left()==0) ){
+            LCDGotoXY(0,0);
+            LCDstring((uint8_t *)" Max deviation: ",16);
+            LCDGotoXY(0,1);
+            sprintf(tmpstr,"    %5u uV     ",  (uint16_t)get_max_deviation());
+            LCDstring((uint8_t *)tmpstr,16);
+            _delay_ms(2000);
             if(is_calibrated_values_ok()){
                 show_set_o2();
                 while(ANY_BUTTON_PRESSED){;}
@@ -732,7 +742,7 @@ void screen_set_helium()
 
 void screen_main_mixing()
 {
-    if(check_emergency((uint16_t)s_data.s1_O2,(uint16_t)s_data.s2_O2)){
+    if(check_emergency()){
         current_working_mode = MODE_EMERGENCY;
         LED_ALERT_ON;
         BUZZER_ON;

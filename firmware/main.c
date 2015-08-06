@@ -11,17 +11,18 @@
 
 //COPYPASTED PID
 // should store in EEPROM
-#define K_P     1.00
-#define K_I     0.00
+#define K_P     0.1
+#define K_I     0.02
 #define K_D     0.00
 struct PID_DATA pidData1; 
 struct PID_DATA pidData2;
 
+int16_t inputValue;
 
 void process_adc_data()
 {
 	int64_t uV;
-	int16_t inputValue;
+	
 	uV = (((int64_t)AD7793_ContinuousReadAvg(1) - 0x800000)*73125) / 0x800000;
     if(uV < 0){ uV = -uV; }
 	
@@ -34,7 +35,7 @@ void process_adc_data()
 		    inputValue = pid_Controller((uint16_t)(sensors_target.s1_target/10), (uint16_t)(s_data.s1_O2/10), &pidData1);
 		    set_servo(SERVO1, inputValue);
 		}
-        if(log_position[0]++>9){log_position[0]=0;}
+        if(++log_position[0]>9){log_position[0]=0;}
 	}else{
 		s_data.s2_uV = uV;
 		s_data.s2_O2 = s_data.s2_uV * s_data.s2_coeff / 10000;
@@ -44,7 +45,17 @@ void process_adc_data()
 		    inputValue = pid_Controller((uint16_t)(sensors_target.s2_target/10), (uint16_t)(s_data.s2_O2/10), &pidData2);
 		    set_servo(SERVO2, inputValue);
 		}
-        if(log_position[1]++>9){log_position[1]=0;}
+		// if(get_current_working_mode() == MODE_MIXING){
+		// 	inputValue = pid_Controller((int16_t)(target.oxygen/100), (int16_t)(s_data.s1_O2/100), &pidData2);
+		// 	if(inputValue > 100){
+		// 		inputValue = 100;
+		// 	}
+		// 	// inputValue/=10;
+
+		// 	set_servo(SERVO1, inputValue);
+		// 	set_servo(SERVO2, inputValue);
+		// }	
+        if(++log_position[1]>9){log_position[1]=0;}
 	}				
     adc_change_channel_and_trigger_delay(adc_current_channel);
 }
@@ -123,15 +134,18 @@ int main(void)
 		}
 		if(need_output()){
 		    uint8_t t_o2 = target.oxygen/1000UL;
-		    uint8_t curr_o2 = s_data.s1_O2/1000UL;
-		    uint8_t s_o2_target = sensors_target.s1_target/1000UL;
+		    // uint8_t curr_o2 = s_data.s1_O2/1000UL;
+		    // uint8_t s_o2_target = sensors_target.s1_target/1000UL;
 		    LCDGotoXY(0,0);
-		    sprintf(tmpstr,"S1: %02u, %02u, %02u, %03u\r\n",  t_o2, curr_o2, s_o2_target, sensors_target.valve1_target);
+		    // sprintf(tmpstr,"S1: %02u, %02u, %02u, %03u\r\n",  t_o2, curr_o2, s_o2_target, sensors_target.valve1_target);
+		    uint8_t curr_o2 = s_data.s2_O2/1000UL;
+		    
+			sprintf(tmpstr,"%02u/%02u, %05d\r\n",  t_o2, curr_o2, inputValue);
 			uart0_puts(tmpstr);
 			reset_need_output();	
 		}	
-        if(get_current_working_mode()==MODE_MIXING){
-            process_alert();
+		if(current_working_mode==MODE_MIXING||current_working_mode==MODE_SET_O2){
+        	process_alert();
         }
 			
     }

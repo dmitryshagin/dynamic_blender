@@ -63,7 +63,7 @@ void check_adc_flags()
 {
     if(adc_prepare>0){
         adc_prepare++;
-        if(adc_prepare>=124){
+        if(adc_prepare>=50){
             adc_ready = 1;
             adc_prepare = 0;
         }
@@ -360,7 +360,7 @@ void adc_init_channel(uint8_t channel)
         AD7793_Calibrate(AD7793_MODE_CAL_INT_FULL,
                          channel);      // Internal Full-Scale Calibration
         AD7793_SetRegisterValue(AD7793_REG_MODE,
-                            0x9, 
+                            0x3, 
                             2,
                             1);
     }    

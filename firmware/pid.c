@@ -90,13 +90,13 @@ int16_t pid_Controller(uint16_t setPoint, uint16_t processValue, struct PID_DATA
   }
 
   // Calculate Dterm
-  d_term = pid_st->D_Factor * (pid_st->lastProcessValue - processValue);
+  d_term = pid_st->D_Factor * (pid_st->lastProcessValue - (int16_t)processValue);
 
   pid_st->lastProcessValue = processValue;
 
   ret = (p_term + i_term + d_term) / SCALING_FACTOR;
-  if(ret > MAX_INT){
-    ret = MAX_INT;
+  if(ret > 100){
+    ret = 100;
   }
   else if(ret < -MAX_INT){
     ret = -MAX_INT;
