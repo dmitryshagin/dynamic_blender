@@ -13,11 +13,14 @@
 // should store in EEPROM
 #define K_P     0.1
 #define K_I     0.02
-#define K_D     0.00
+#define K_D     0.01
 struct PID_DATA pidData1; 
 struct PID_DATA pidData2;
 
 int16_t inputValue;
+int16_t prev_input_s1;
+int16_t prev_input_s2;
+uint16_t to_target = 0;
 
 void process_adc_data()
 {
@@ -32,7 +35,24 @@ void process_adc_data()
         log_windows[0][log_position[0]] = s_data.s1_uV;
 		adc_current_channel = AD7793_CH_AIN2P_AIN2M;
 		if(get_current_working_mode() == MODE_MIXING){
-		    inputValue = pid_Controller((uint16_t)(sensors_target.s1_target/10), (uint16_t)(s_data.s1_O2/10), &pidData1);
+			uint16_t corrected_target = (uint16_t)(sensors_target.s1_target/100);
+			uint16_t corrected_current = (uint16_t)(s_data.s1_O2/100);
+			// if(corrected_current < corrected_target){
+			// 	if( (corrected_target - corrected_current)>100 && to_target==2000){
+			// 		corrected_target = corrected_current + 100;
+			// 		to_target = 0;
+			// 	}else{
+			// 		to_target+=1;
+			// 	}	
+			// }
+		    inputValue = pid_Controller(corrected_target, corrected_current, &pidData1);
+		    if((prev_input_s1<inputValue) && (corrected_current >= corrected_target) ){
+		    	inputValue = prev_input_s1;
+		    }
+		    // if((inputValue-prev_input_s1)>10){
+		    // 	inputValue = prev_input_s1 + 2;
+		    // }
+		    prev_input_s1 = inputValue;
 		    set_servo(SERVO1, inputValue);
 		}
         if(++log_position[0]>9){log_position[0]=0;}
@@ -42,7 +62,9 @@ void process_adc_data()
         log_windows[1][log_position[1]] = s_data.s2_uV;
 		adc_current_channel = AD7793_CH_AIN1P_AIN1M;
 		if(get_current_working_mode() == MODE_MIXING && (sensors_target.s1_target!=sensors_target.s2_target)){
-		    inputValue = pid_Controller((uint16_t)(sensors_target.s2_target/10), (uint16_t)(s_data.s2_O2/10), &pidData2);
+		    inputValue = pid_Controller((uint16_t)(sensors_target.s2_target/100), (uint16_t)(s_data.s2_O2/100), &pidData2);
+		    inputValue = -inputValue;
+		    prev_input_s2 = inputValue;
 		    set_servo(SERVO2, inputValue);
 		}
 		// if(get_current_working_mode() == MODE_MIXING){
@@ -138,9 +160,9 @@ int main(void)
 		    // uint8_t s_o2_target = sensors_target.s1_target/1000UL;
 		    LCDGotoXY(0,0);
 		    // sprintf(tmpstr,"S1: %02u, %02u, %02u, %03u\r\n",  t_o2, curr_o2, s_o2_target, sensors_target.valve1_target);
-		    uint8_t curr_o2 = s_data.s2_O2/1000UL;
+		    uint16_t curr_o2 = s_data.s1_O2/100UL;
 		    
-			sprintf(tmpstr,"%02u/%02u, %05d\r\n",  t_o2, curr_o2, inputValue);
+			sprintf(tmpstr,"%02u, %02u.%01u, %05d\r\n", t_o2, curr_o2/10, curr_o2%10, inputValue);
 			uart0_puts(tmpstr);
 			reset_need_output();	
 		}	
