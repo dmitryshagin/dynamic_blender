@@ -1,5 +1,6 @@
 #include "menu.h"
 #include <stdio.h>
+#include <string.h>
 #include <avr/io.h>
 #include <util/delay.h>
 #include "init.h"
@@ -159,6 +160,18 @@ void show_set_valve2(){
     LCDstring((uint8_t *)"               -",16);
 }
 
+void show_set_pid(){
+    current_working_mode = MODE_SET_PID;
+    VALVE1_OFF;
+    VALVE2_OFF;
+    LED_VAVLE1_OFF;
+    LED_VAVLE2_OFF; 
+    LCDGotoXY(0,0);
+    LCDstring((uint8_t *)"PID setup x128 +",16);
+    LCDGotoXY(0,1);
+    LCDstring((uint8_t *)"               -",16);
+}
+
 void show_submenu(){
     switch(submenu_position){
         case 0:
@@ -182,6 +195,9 @@ void show_submenu(){
         case 6:
             show_start_calibrate();
             break;
+        default:
+            show_set_pid();
+            break;    
     }
 }
 
@@ -342,12 +358,12 @@ void process_menu_selection(){
         if(submenu_position>=0){
             if(BUTTON_ENTER_PRESSED){
                 submenu_position+=1;
-                if(submenu_position>6){submenu_position=0;}
+                if(submenu_position>12){submenu_position=0;}
                 mode_setup_iteration = 1;
             }else 
             if(BUTTON_EXIT_PRESSED){
                 submenu_position-=1;
-                if(submenu_position<0){submenu_position=6;}
+                if(submenu_position<0){submenu_position=12;}
                 mode_setup_iteration = 1;
             }
         }
@@ -753,6 +769,92 @@ void screen_main_mixing()
     }
 }
 
+void screen_set_pid(uint8_t pid_index)
+{
+    int16_t diff=0;
+    int16_t target_value=0;
+    switch(pid_index){
+        case 0:
+            target_value = pid_factors.s1_p_factor;
+            break;
+        case 1:
+            target_value = pid_factors.s1_i_factor;
+            break;
+        case 2:
+            target_value = pid_factors.s1_d_factor;
+            break;
+        case 3:
+            target_value = pid_factors.s2_p_factor;
+            break;
+        case 4:
+            target_value = pid_factors.s2_i_factor;
+            break;
+        case 5:
+            target_value = pid_factors.s2_d_factor;
+            break;
+    }
+
+    if(buttons.buttonMinus>0){
+        if(buttons.buttonMinus==0xFF){
+            diff = 10;
+        }else{
+            diff = 1;
+        }
+        if(target_value>(diff-MAX_INT)){
+            target_value-=diff;
+        }else{
+            target_value=-MAX_INT;
+        }
+    }
+
+    if(buttons.buttonPlus>0){
+        if(buttons.buttonPlus==0xFF){
+            diff = 10;
+        }else{
+            diff = 1;
+        }
+        if(target_value<(MAX_INT-diff)){
+            target_value+=diff;
+        }else{
+            target_value=MAX_INT;
+        }
+    }
+    char target_name[5];
+
+    switch(pid_index){
+        case 0:
+            pid_factors.s1_p_factor = target_value;
+            strncpy(target_name, "S1_P", sizeof("S1_P"));
+            break;
+        case 1:
+            pid_factors.s1_i_factor = target_value;
+            strncpy(target_name, "S1_I", sizeof("S1_I"));
+            break;
+        case 2:
+            pid_factors.s1_d_factor = target_value;
+            strncpy(target_name, "S1_D", sizeof("S1_D"));
+            break;
+        case 3:
+            pid_factors.s2_p_factor = target_value;
+            strncpy(target_name, "S2_P", sizeof("S2_P"));
+            break;
+        case 4:
+            pid_factors.s2_i_factor = target_value;
+            strncpy(target_name, "S2_I", sizeof("S2_I"));
+            break;
+        case 5:
+            pid_factors.s2_d_factor = target_value;
+            strncpy(target_name, "S2_D", sizeof("S2_D"));
+            break;
+    }
+
+
+    sprintf(tmpstr,"%s   %05d   -",target_name, target_value);
+
+    LCDGotoXY(0,1);
+    LCDstring((uint8_t *)tmpstr,16);
+}
+
 void process_menu_internal(){
     if(current_working_mode==MODE_CALIBRATE){
         s_data.s1_coeff = O2_COEFF/s_data.s1_uV;
@@ -808,6 +910,9 @@ void process_menu_internal(){
     }else
     if(current_working_mode==MODE_START_CALIBRATE){
         show_start_calibrate();
+    }else
+    if(current_working_mode==MODE_SET_PID){
+        screen_set_pid(submenu_position-7);
     }
 
     if(current_working_mode==MODE_MIXING){

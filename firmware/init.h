@@ -48,6 +48,7 @@
 #define MODE_SET_VALVE2 61
 #define MODE_RUN_TEST 70
 #define MODE_START_CALIBRATE 71
+#define MODE_SET_PID 81
 
 typedef struct TARGET_MIX{
   uint16_t oxygen;
