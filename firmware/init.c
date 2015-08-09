@@ -18,9 +18,17 @@ struct TARGET_MIX nv_target EEMEM = {32000,0};
 struct TARGET_MIX target;
 struct TARGET_MIX stored_target;
 
+struct PID_FACTORS nv_pid_factors EEMEM = {12,2,1,12,2,1};
+struct PID_FACTORS pid_factors;
+struct PID_FACTORS stored_pid_factors;
+
 struct SENSORS_DATA s_data;
 struct SENSORS_TARGET_MIX sensors_target;
 struct BUTTONS_STATUS buttons;
+
+struct PID_DATA pidData1; 
+struct PID_DATA pidData2;
+
 uint32_t log_windows[2][10];
 uint8_t  log_position[2];
 
@@ -131,9 +139,11 @@ void load_eeprom_data()
 {
     eeprom_read_block((void*)&system_config, (const void*)&nv_system_config, sizeof(system_config));
     eeprom_read_block((void*)&target, (const void*)&nv_target, sizeof(target));
+    eeprom_read_block((void*)&pid_factors, (const void*)&nv_pid_factors, sizeof(pid_factors));
     sensors_target.s1_target = target.oxygen;
     sensors_target.s2_target = target.oxygen;
 }
+
 
 
 void test_outputs(void)
@@ -191,6 +201,20 @@ void save_target_to_eeprom()
     }
 
 }
+
+void save_pid_data_to_eeprom(){
+    eeprom_read_block((void*)&stored_pid_factors, (const void*)&nv_pid_factors, sizeof(pid_factors));
+
+    if (stored_pid_factors.s1_p_factor != pid_factors.s1_p_factor ||
+        stored_pid_factors.s1_i_factor != pid_factors.s1_i_factor ||
+        stored_pid_factors.s1_d_factor != pid_factors.s1_d_factor ||
+        stored_pid_factors.s2_p_factor != pid_factors.s2_p_factor ||
+        stored_pid_factors.s2_i_factor != pid_factors.s2_i_factor ||
+        stored_pid_factors.s2_d_factor != pid_factors.s2_d_factor){
+        eeprom_write_block(&pid_factors, &nv_pid_factors, sizeof(pid_factors));
+    }
+}
+
 
 
 void init_outputs()

@@ -73,6 +73,17 @@ typedef struct SENSORS_DATA{
 	int64_t  s2_coeff;
 } sensors_t;
 
+
+typedef struct PID_FACTORS{	
+	int16_t s1_p_factor;
+	int16_t s1_i_factor;
+	int16_t s1_d_factor;
+	int16_t s2_p_factor;
+	int16_t s2_i_factor;
+	int16_t s2_d_factor;
+} pid_factors_t;
+
+
 typedef struct SYSTEM_CONFIG{
 	uint16_t min_servo_1; 
 	uint16_t min_servo_2;
@@ -94,8 +105,12 @@ extern struct TARGET_MIX target;
 extern struct SENSORS_TARGET_MIX sensors_target;
 extern struct SENSORS_DATA s_data;
 extern struct BUTTONS_STATUS buttons;
+extern struct PID_FACTORS pid_factors;
 extern uint32_t log_windows[2][10];
 extern uint8_t  log_position[2];
+extern struct PID_DATA pidData1; 
+extern struct PID_DATA pidData2;
+
 
 
 char tmpstr[20];
@@ -123,6 +138,8 @@ void test_outputs();
 void save_eeprom_data();
 
 void save_target_to_eeprom();
+
+void save_pid_data_to_eeprom();
 
 uint16_t get_uptime_seconds();
 

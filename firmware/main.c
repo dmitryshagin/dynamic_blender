@@ -9,18 +9,12 @@
 #include "menu.h"
 
 
-//COPYPASTED PID
-// should store in EEPROM
-#define K_P     0.1
-#define K_I     0.02
-#define K_D     0.01
-struct PID_DATA pidData1; 
-struct PID_DATA pidData2;
-
 int16_t inputValue;
 int16_t prev_input_s1;
 int16_t prev_input_s2;
-uint16_t to_target = 0;
+uint16_t corrected_target, corrected_current;
+
+
 
 void process_adc_data()
 {
@@ -35,23 +29,12 @@ void process_adc_data()
         log_windows[0][log_position[0]] = s_data.s1_uV;
 		adc_current_channel = AD7793_CH_AIN2P_AIN2M;
 		if(get_current_working_mode() == MODE_MIXING){
-			uint16_t corrected_target = (uint16_t)(sensors_target.s1_target/100);
-			uint16_t corrected_current = (uint16_t)(s_data.s1_O2/100);
-			// if(corrected_current < corrected_target){
-			// 	if( (corrected_target - corrected_current)>100 && to_target==2000){
-			// 		corrected_target = corrected_current + 100;
-			// 		to_target = 0;
-			// 	}else{
-			// 		to_target+=1;
-			// 	}	
-			// }
+			corrected_target = (uint16_t)(sensors_target.s1_target/100);
+			corrected_current = (uint16_t)(s_data.s1_O2/100);
 		    inputValue = pid_Controller(corrected_target, corrected_current, &pidData1);
 		    if((prev_input_s1<inputValue) && (corrected_current >= corrected_target) ){
 		    	inputValue = prev_input_s1;
 		    }
-		    // if((inputValue-prev_input_s1)>10){
-		    // 	inputValue = prev_input_s1 + 2;
-		    // }
 		    prev_input_s1 = inputValue;
 		    set_servo(SERVO1, inputValue);
 		}
@@ -62,21 +45,17 @@ void process_adc_data()
         log_windows[1][log_position[1]] = s_data.s2_uV;
 		adc_current_channel = AD7793_CH_AIN1P_AIN1M;
 		if(get_current_working_mode() == MODE_MIXING && (sensors_target.s1_target!=sensors_target.s2_target)){
-		    inputValue = pid_Controller((uint16_t)(sensors_target.s2_target/100), (uint16_t)(s_data.s2_O2/100), &pidData2);
+		    uint16_t corrected_target = (uint16_t)(sensors_target.s2_target/100);
+			uint16_t corrected_current = (uint16_t)(s_data.s2_O2/100);
+			
+		    inputValue = pid_Controller(corrected_target, corrected_current, &pidData1);
 		    inputValue = -inputValue;
+		    if((prev_input_s2<inputValue) && (corrected_current >= corrected_target) ){
+		    	inputValue = prev_input_s2;
+		    }
 		    prev_input_s2 = inputValue;
 		    set_servo(SERVO2, inputValue);
 		}
-		// if(get_current_working_mode() == MODE_MIXING){
-		// 	inputValue = pid_Controller((int16_t)(target.oxygen/100), (int16_t)(s_data.s1_O2/100), &pidData2);
-		// 	if(inputValue > 100){
-		// 		inputValue = 100;
-		// 	}
-		// 	// inputValue/=10;
-
-		// 	set_servo(SERVO1, inputValue);
-		// 	set_servo(SERVO2, inputValue);
-		// }	
         if(++log_position[1]>9){log_position[1]=0;}
 	}				
     adc_change_channel_and_trigger_delay(adc_current_channel);
@@ -139,10 +118,6 @@ int main(void)
     set_countdown_timer(15);
 
 	uart0_puts("Welcome to blender :)\r\n");
-
-	pid_Init(K_P * SCALING_FACTOR, K_I * SCALING_FACTOR , K_D * SCALING_FACTOR , &pidData1);
-	pid_Init(K_P * SCALING_FACTOR, K_I * SCALING_FACTOR , K_D * SCALING_FACTOR , &pidData2);
-
 	for(;;){
 		process_uart();
 	    if(adc_ready>0){ 

@@ -186,7 +186,7 @@ void show_submenu(){
 }
 
 
-void show_mixing(){
+void show_mixing(uint8_t store_to_eeprom){
     current_working_mode = MODE_MIXING;
     LED_VAVLE1_ON;
     VALVE1_ON;
@@ -194,9 +194,13 @@ void show_mixing(){
     //TODO - remove IRL
     // LED_VAVLE2_ON;
     // VALVE2_ON;
-
-    save_eeprom_data();
-    save_target_to_eeprom();
+    if(store_to_eeprom){
+        save_eeprom_data();
+        save_target_to_eeprom();
+        save_pid_data_to_eeprom();
+        pid_Init(pid_factors.s1_p_factor, pid_factors.s1_i_factor , pid_factors.s1_d_factor , &pidData1);
+        pid_Init(pid_factors.s2_p_factor, pid_factors.s2_i_factor , pid_factors.s2_d_factor , &pidData2);
+    }
     show_mixing_headline();
 }
 
@@ -290,7 +294,7 @@ void show_calibration_error(){
 
 void process_menu_selection(){
     if((current_working_mode == MODE_SET_O2 || current_working_mode == MODE_SET_HE) && COMPRESSOR_IS_ON && FLOW_IS_ON){
-        show_mixing();
+        show_mixing(1);
         set_countdown_timer(30);
         mode_setup_iteration = 1;
     }else
@@ -667,7 +671,7 @@ void scrren_set_o2_while_mixing()
     sensors_target.s1_target = target.oxygen;
     sensors_target.s2_target = target.oxygen;
     if(diff>0){
-        show_mixing();
+        show_mixing(0);
         set_alert(0,0);
         set_countdown_timer(10);
     }
@@ -797,7 +801,7 @@ void process_menu_internal(){
     if(current_working_mode==MODE_MIXING && 
         BUTTON_EXIT_PRESSED && !BUTTON_ENTER_PRESSED){
         mixing_submenu = 0;
-        show_mixing();
+        show_mixing(0);
     }else
     if(current_working_mode==MODE_SET_HE){
         screen_set_helium();
