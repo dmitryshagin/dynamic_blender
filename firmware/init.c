@@ -36,7 +36,6 @@ volatile uint8_t timer0_counter;
 volatile uint16_t uptime_counter;
 volatile uint16_t uptime_seconds;
 volatile uint8_t fl_need_input;
-volatile uint8_t fl_need_output;
 volatile uint8_t fl_blink_5Hz = 0;
 volatile uint8_t fl_need_blink = 0;
 volatile uint8_t fl_need_buzz = 0;
@@ -50,9 +49,6 @@ ISR(TIMER0_OVF_vect)
         timer0_counter=0;
         check_adc_flags();
         if(uptime_counter%50==0){
-            if(uptime_counter%50==0){
-               fl_need_output = 1;        
-            }
             process_buttons();
         }
     }else
@@ -115,17 +111,10 @@ uint8_t need_input()
     return fl_need_input;
 }
 
-void reset_need_output(){
-    fl_need_output=0;
-}
-
 void reset_need_input(){
     fl_need_input=0;
 }
 
-uint8_t need_output(){
-    return fl_need_output;
-}
 
 uint16_t get_uptime_seconds()
 {

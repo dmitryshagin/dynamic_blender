@@ -144,13 +144,9 @@ void save_pid_data_to_eeprom();
 
 uint16_t get_uptime_seconds();
 
-void reset_need_output();
-
 void reset_need_input();
 
 uint8_t need_input();
-
-uint8_t need_output();
 
 uint8_t is_calibrated_values_ok();
 
