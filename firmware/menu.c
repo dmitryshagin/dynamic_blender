@@ -10,6 +10,8 @@ uint8_t mixing_submenu = 0;
 uint8_t mode_setup_iteration = 0;
 uint8_t valve1_test = 0;
 uint8_t valve2_test = 0;
+int8_t submenu_position = -1;
+int8_t last_submenu_position = -1;
 
 volatile uint16_t current_timer_mark = 0;
 volatile uint8_t countdown_timer = 0;
@@ -26,7 +28,6 @@ uint8_t get_seconds_left(){
         return 0;
     }
 }
-
 
 
 void process_buttons()
@@ -105,9 +106,9 @@ void show_set_brightness(){
     LED_VAVLE1_OFF;
     LED_VAVLE2_OFF; 
     LCDGotoXY(0,0);
-    LCDstring((uint8_t *)"  Brightness  +",16);
+    LCDstring((uint8_t *)"  Brightness   +",16);
     LCDGotoXY(0,1);
-    LCDstring((uint8_t *)"              -",16);
+    LCDstring((uint8_t *)"               -",16);
 }
 
 void show_set_contrast(){
@@ -156,6 +157,32 @@ void show_set_valve2(){
     LCDstring((uint8_t *)"  Set He valve +",16);
     LCDGotoXY(0,1);
     LCDstring((uint8_t *)"               -",16);
+}
+
+void show_submenu(){
+    switch(submenu_position){
+        case 0:
+            show_set_brightness();
+            break;
+        case 1:
+            show_set_contrast();
+            break;
+        case 2:
+            show_set_emergency_level();
+            break;
+        case 3:
+            show_set_valve1();
+            break;
+        case 4:
+            show_set_valve2();
+            break;
+        case 5:
+            show_run_test();
+            break;
+        case 6:
+            show_start_calibrate();
+            break;
+    }
 }
 
 
@@ -308,75 +335,21 @@ void process_menu_selection(){
             show_set_o2();
             mode_setup_iteration = 1;
         }else
-        if(current_working_mode == MODE_SET_BRIGHTNESS){
+        if(submenu_position>=0){
             if(BUTTON_ENTER_PRESSED){
-                show_set_contrast();
+                submenu_position+=1;
+                if(submenu_position>6){submenu_position=0;}
                 mode_setup_iteration = 1;
             }else 
             if(BUTTON_EXIT_PRESSED){
-                show_start_calibrate();
+                submenu_position-=1;
+                if(submenu_position<0){submenu_position=6;}
                 mode_setup_iteration = 1;
             }
-        }else
-        if(current_working_mode == MODE_SET_CONTRAST){
-            if(BUTTON_ENTER_PRESSED){
-                show_set_emergency_level();
-                mode_setup_iteration = 1;
-            }else 
-            if(BUTTON_EXIT_PRESSED){
-                show_set_brightness();
-                mode_setup_iteration = 1;
-            }
-        }else
-        if(current_working_mode == MODE_SET_EMERGENCY_LEVEL){
-            if(BUTTON_ENTER_PRESSED){
-                show_set_valve1();
-                mode_setup_iteration = 1;
-            }else 
-            if(BUTTON_EXIT_PRESSED){
-                show_set_contrast();
-                mode_setup_iteration = 1;
-            }
-        }else
-        if(current_working_mode == MODE_SET_VALVE1){
-            if(BUTTON_ENTER_PRESSED){
-                show_set_valve2();
-                mode_setup_iteration = 1;
-            }else 
-            if(BUTTON_EXIT_PRESSED){
-                show_set_emergency_level();
-                mode_setup_iteration = 1;
-            }
-        }else
-        if(current_working_mode == MODE_SET_VALVE2){
-            if(BUTTON_ENTER_PRESSED){
-                show_run_test();
-                mode_setup_iteration = 1;
-            }else 
-            if(BUTTON_EXIT_PRESSED){
-                show_set_valve1();
-                mode_setup_iteration = 1;
-            }
-        }else
-        if(current_working_mode == MODE_RUN_TEST){
-            if(BUTTON_ENTER_PRESSED){
-                show_start_calibrate();
-                mode_setup_iteration = 1;
-            }else 
-            if(BUTTON_EXIT_PRESSED){
-                show_set_valve2();
-                mode_setup_iteration = 1;
-            }
-        }else
-        if(current_working_mode == MODE_START_CALIBRATE){
-            if(BUTTON_ENTER_PRESSED){
-                show_set_brightness();
-                mode_setup_iteration = 1;
-            }else 
-            if(BUTTON_EXIT_PRESSED){
-                show_run_test();
-                mode_setup_iteration = 1;
-            }
+        }
+        if(last_submenu_position!=submenu_position){
+            show_submenu();
+            last_submenu_position=submenu_position;
         }
     }   
 
@@ -385,6 +358,8 @@ void process_menu_selection(){
     }else{
         if(mode_setup_iteration == 1){
             if((current_working_mode >= 50 ) && (BUTTON_EXIT_PRESSED && BUTTON_ENTER_PRESSED)){
+                submenu_position=-1;
+                last_submenu_position=-1;
                 show_set_o2();
                 validate_o2_data();
                 save_eeprom_data();
@@ -394,7 +369,8 @@ void process_menu_selection(){
         if(mode_setup_iteration == 1){
             if((current_working_mode == MODE_SET_HE || current_working_mode == MODE_SET_O2) && 
                 (BUTTON_EXIT_PRESSED && BUTTON_ENTER_PRESSED)){
-                show_set_brightness();
+                submenu_position = 0;
+                show_submenu();
                 mode_setup_iteration = 2;
             }
         }

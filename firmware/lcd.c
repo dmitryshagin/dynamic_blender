@@ -361,7 +361,11 @@ void print_calibration_screen(int32_t oxygen1_uV, int32_t oxygen2_uV, uint8_t ti
     if(COMPRESSOR_IS_ON){
       char tmpstr[20];
       LCDGotoXY(0,0);
-      sprintf(tmpstr,"S1: %5liuV    >", oxygen1_uV);
+      if(is_calibrated_values_ok()){
+        sprintf(tmpstr,"S1: %5liuV    >", oxygen1_uV);
+      }else{
+        sprintf(tmpstr,"S1: %5liuV     ", oxygen1_uV);
+      }
       LCDstring((uint8_t *)tmpstr,16);
 
       sprintf(tmpstr,"S2: %5liuV  %2ds", oxygen2_uV, time_left);
