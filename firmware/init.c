@@ -291,7 +291,7 @@ void set_contrast(uint8_t value)
     OCR2B = value;
 }
 
-void init_adc()
+static void init_adc()
 {
     LCDclr();
     LCDGotoXY(3,0); 

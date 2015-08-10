@@ -7,10 +7,7 @@
 #include "lcd.h"
 
 
-uint8_t mixing_submenu = 0;
-uint8_t mode_setup_iteration = 0;
-uint8_t valve1_test = 0;
-uint8_t valve2_test = 0;
+uint8_t mixing_submenu, mode_setup_iteration, valve1_test, valve2_test;
 int8_t submenu_position = -1;
 int8_t last_submenu_position = -1;
 
@@ -498,6 +495,30 @@ void run_test()
     show_run_test();
 }
 
+void print_calibration_screen(int32_t oxygen1_uV, int32_t oxygen2_uV, uint8_t time_left)
+{
+    if(COMPRESSOR_IS_ON){
+      char tmpstr[20];
+      LCDGotoXY(0,0);
+      if(is_calibrated_values_ok()){
+        sprintf(tmpstr,"S1: %5liuV    >", oxygen1_uV);
+      }else{
+        sprintf(tmpstr,"S1: %5liuV     ", oxygen1_uV);
+      }
+      LCDstring((uint8_t *)tmpstr,16);
+
+      sprintf(tmpstr,"S2: %5liuV  %2ds", oxygen2_uV, time_left);
+      LCDGotoXY(0,1);
+      LCDstring((uint8_t *)tmpstr,16);
+    }else{
+      LCDGotoXY(0,0);
+      LCDstring((uint8_t *)"Please, turn on ",16);
+      LCDGotoXY(0,1);
+      LCDstring((uint8_t *)"your compressor!",16);
+      set_countdown_timer(15);
+    }
+}
+
 void screen_set_brightness()
 {
     char tmpstr[10];
@@ -854,7 +875,7 @@ void screen_main_mixing()
     }
 }
 
-void screen_set_pid(uint8_t pid_index)
+static void screen_set_pid(uint8_t pid_index)
 {
     char tmpstr[20];
     int16_t diff=0;

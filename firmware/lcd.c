@@ -17,9 +17,6 @@
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 #include <util/delay.h>
-#include <stdio.h>
-#include "init.h"
-#include "menu.h"
 
 const uint8_t LcdCustomChar[] PROGMEM=//define 8 custom LCD chars
 {
@@ -354,28 +351,4 @@ void LCDprogressBar(uint8_t progress, uint8_t maxprogress, uint8_t length)
     LCDsendChar(c);
   }
 
-}
-
-void print_calibration_screen(int32_t oxygen1_uV, int32_t oxygen2_uV, uint8_t time_left)
-{
-    if(COMPRESSOR_IS_ON){
-      char tmpstr[20];
-      LCDGotoXY(0,0);
-      if(is_calibrated_values_ok()){
-        sprintf(tmpstr,"S1: %5liuV    >", oxygen1_uV);
-      }else{
-        sprintf(tmpstr,"S1: %5liuV     ", oxygen1_uV);
-      }
-      LCDstring((uint8_t *)tmpstr,16);
-
-      sprintf(tmpstr,"S2: %5liuV  %2ds", oxygen2_uV, time_left);
-      LCDGotoXY(0,1);
-      LCDstring((uint8_t *)tmpstr,16);
-    }else{
-      LCDGotoXY(0,0);
-      LCDstring((uint8_t *)"Please, turn on ",16);
-      LCDGotoXY(0,1);
-      LCDstring((uint8_t *)"your compressor!",16);
-      set_countdown_timer(15);
-    }
 }

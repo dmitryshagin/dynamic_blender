@@ -125,8 +125,6 @@ uint8_t is_log_ok();
 
 void init_outputs();
 
-void init_adc();
-
 void init();
 
 void set_servo(uint8_t servo, int16_t value);
