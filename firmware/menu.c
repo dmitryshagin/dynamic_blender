@@ -394,6 +394,7 @@ void show_calibration_error(){
 }
 
 void process_menu_selection(){
+    char tmpstr[20];
     if((current_working_mode == MODE_SET_O2 || current_working_mode == MODE_SET_HE) && COMPRESSOR_IS_ON && FLOW_IS_ON){
         show_mixing(1);
         set_countdown_timer(30);
@@ -499,6 +500,7 @@ void run_test()
 
 void screen_set_brightness()
 {
+    char tmpstr[10];
     uint8_t diff=0;
     if(buttons.buttonMinus>0){
         if(buttons.buttonMinus==0xFF){
@@ -542,6 +544,7 @@ void screen_set_brightness()
 
 void screen_set_contrast()
 {
+    char tmpstr[10];
     uint8_t diff=0;
     if(buttons.buttonMinus>0){
         if(buttons.buttonMinus==0xFF){
@@ -585,6 +588,7 @@ void screen_set_contrast()
 
 void screen_set_emergency_level()
 {
+    char tmpstr[10];
     uint16_t diff=0;
     if(buttons.buttonMinus>0){
         if(buttons.buttonMinus==0xFF){
@@ -620,6 +624,7 @@ void screen_set_emergency_level()
 
 void screen_set_valve1()
 {
+    char tmpstr[10];
     uint8_t diff=0;
     if(buttons.buttonMinus>0){
         if(buttons.buttonMinus==0xFF){
@@ -659,6 +664,7 @@ void screen_set_valve1()
 
 void screen_set_valve2()
 {
+    char tmpstr[10];
     uint8_t diff=0;
     if(buttons.buttonMinus>0){
         if(buttons.buttonMinus==0xFF){
@@ -698,6 +704,7 @@ void screen_set_valve2()
 
 void screen_set_o2()
 {
+    char tmpstr[10];
     uint16_t diff=0;
     if(buttons.buttonMinus>0){
         if(buttons.buttonMinus==0xFF){
@@ -729,16 +736,7 @@ void screen_set_o2()
     sprintf(tmpstr,"%02u%%", t_print);
     LCDGotoXY(7,1);
     LCDstring((uint8_t *)tmpstr,3);
-    if(target.helium>get_helium_limit()){
-        target.helium=get_helium_limit();
-    }
-    if(sensors_target.s1_target==sensors_target.s2_target){ //nitrox or trimix?
-        sensors_target.s1_target = target.oxygen;
-        sensors_target.s2_target = target.oxygen;       
-    }else{
-        sensors_target.s1_target = ((uint32_t)target.oxygen * 100UL) / (100 - (target.helium/1000UL));
-        sensors_target.s2_target = (uint16_t)target.oxygen;
-    }  
+    validate_o2_data();
 }
 
 void scrren_set_o2_while_mixing()
@@ -780,6 +778,7 @@ void scrren_set_o2_while_mixing()
 
 void screen_set_helium()
 {
+    char tmpstr[10];
     uint16_t diff=0;
 
     if(buttons.buttonMinus>0){
@@ -823,6 +822,7 @@ void screen_set_helium()
 
 void screen_main_mixing()
 {
+    char tmpstr[20];
     if(check_emergency()){
         current_working_mode = MODE_EMERGENCY;
         LED_ALERT_ON;
@@ -856,6 +856,7 @@ void screen_main_mixing()
 
 void screen_set_pid(uint8_t pid_index)
 {
+    char tmpstr[20];
     int16_t diff=0;
     int16_t target_value=0;
     switch(pid_index){
@@ -941,6 +942,7 @@ void screen_set_pid(uint8_t pid_index)
 }
 
 void screen_set_servo1_min(){
+    char tmpstr[10];
     uint16_t diff=0;
     if(buttons.buttonMinus>0){
         if(buttons.buttonMinus==0xFF){
@@ -972,9 +974,12 @@ void screen_set_servo1_min(){
     LCDGotoXY(6,1);
     LCDstring((uint8_t *)tmpstr,4);
     init_outputs();
+    set_servo(SERVO1,0);
+    set_servo(SERVO2,0);
 }
 
 void screen_set_servo1_max(){
+    char tmpstr[10];
     uint16_t diff=0;
     if(buttons.buttonMinus>0){
         if(buttons.buttonMinus==0xFF){
@@ -1011,6 +1016,7 @@ void screen_set_servo1_max(){
 }
 
 void screen_set_servo2_min(){
+    char tmpstr[10];
     uint16_t diff=0;
     if(buttons.buttonMinus>0){
         if(buttons.buttonMinus==0xFF){
@@ -1042,9 +1048,12 @@ void screen_set_servo2_min(){
     LCDGotoXY(6,1);
     LCDstring((uint8_t *)tmpstr,4);
     init_outputs();
+    set_servo(SERVO1,0);
+    set_servo(SERVO2,0);
 }
 
 void screen_set_servo2_max(){
+    char tmpstr[10];
     uint16_t diff=0;
     if(buttons.buttonMinus>0){
         if(buttons.buttonMinus==0xFF){
@@ -1081,6 +1090,7 @@ void screen_set_servo2_max(){
 }
 
 void screen_set_timer1(){
+    char tmpstr[10];
     uint16_t diff=0;
     if(buttons.buttonMinus>0){
         if(buttons.buttonMinus==0xFF){
@@ -1112,6 +1122,8 @@ void screen_set_timer1(){
     LCDGotoXY(6,1);
     LCDstring((uint8_t *)tmpstr,4);
     init_outputs();
+    set_servo(SERVO1,0);
+    set_servo(SERVO2,0);
 }
 
 

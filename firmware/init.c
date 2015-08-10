@@ -67,7 +67,7 @@ ISR(TIMER0_OVF_vect)
 }
 
 
-int parseInt(char * input, uint8_t max_count,int *result){
+int8_t parseInt(char * input, uint8_t max_count,int *result,int min_allowed,int max_allowed){
   *result=0;
   uint32_t buff;
   uint8_t negative=0;
@@ -90,6 +90,9 @@ int parseInt(char * input, uint8_t max_count,int *result){
   }
   if(negative){
     *result*=-1;
+  }
+  if(*result>max_allowed ||*result<min_allowed){
+    return -1;
   }
   return 0;  
 }
@@ -329,6 +332,9 @@ void init()
     while(ANY_BUTTON_PRESSED){;}
     _delay_ms(150);
     sei();
+    set_current_working_mode(MODE_CALIBRATE);
+    set_countdown_timer(15);
+
 }
 
 

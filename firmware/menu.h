@@ -31,4 +31,8 @@ void set_current_working_mode(uint8_t mode);
 
 void set_countdown_timer(uint8_t seconds);
 
+void run_test();
+void validate_o2_data();
+void show_start_calibrate();
+
 #endif	// _MENU_H_

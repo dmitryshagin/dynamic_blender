@@ -156,6 +156,8 @@ extern volatile uint8_t adc_ready, adc_prepare;
 
 void check_adc_flags();
 
+void process_adc_data();
+
 void adc_change_channel_and_trigger_delay(uint8_t channel);
 
 /* Initialize AD7793 and check if the device is present*/

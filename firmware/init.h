@@ -119,9 +119,7 @@ extern struct PID_DATA pidData2;
 
 
 
-char tmpstr[20];
-
-int parseInt(char * input, uint8_t max_count,int *result);
+int8_t parseInt(char * input, uint8_t max_count,int *result,int min_allowed,int max_allowed);
 
 uint8_t is_log_ok();
 

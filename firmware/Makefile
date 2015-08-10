@@ -59,7 +59,7 @@ AVRDUDE_ISP = avrdude $(PROGRAMMER_ISP) -p $(DEVICE)
 AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE) -P $(PORT) -b $(BAUD) -v
 
 
-COMPILE = avr-gcc -Wall -Os -DF_CPU=$(CLOCK) -mmcu=$(DEVICE) -DUART_RX0_BUFFER_SIZE=128 -DUART_TX0_BUFFER_SIZE=128
+COMPILE = avr-gcc -Wall -Os -DF_CPU=$(CLOCK) -mmcu=$(DEVICE) -DUART_RX0_BUFFER_SIZE=16 -DUART_TX0_BUFFER_SIZE=128
 
 # symbolic targets:
 all:	main.hex main.eep

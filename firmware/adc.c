@@ -46,11 +46,13 @@
 #include "adc.h"	   // AD7793 definitions.
 #include "spi.h"	   // Communication definitions.
 #include "init.h"
- #include <util/delay.h>
+#include "menu.h"
+#include <util/delay.h>
 
 
 volatile uint8_t adc_current_channel = AD7793_CH_AIN1P_AIN1M;
 volatile uint8_t adc_ready = 0, adc_prepare = 0;
+int16_t prev_input_s1, prev_input_s2;
 
 /***************************************************************************//**
  * @brief Initializes the AD7793 and checks if the device is present.
@@ -68,6 +70,55 @@ void check_adc_flags()
             adc_prepare = 0;
         }
     }
+}
+
+
+void process_adc_data()
+{
+    int64_t uV;
+    int16_t inputValue;
+    uint16_t corrected_target, corrected_current;
+    if(adc_ready>0){ 
+        uV = (((int64_t)AD7793_ContinuousReadAvg(1) - 0x800000)*73125) / 0x800000;
+        if(uV < 0){ uV = -uV; }
+        
+        if(adc_current_channel == AD7793_CH_AIN1P_AIN1M){
+            s_data.s1_uV = uV;
+            s_data.s1_O2 = s_data.s1_uV * s_data.s1_coeff / 10000;
+            log_windows[0][log_position[0]] = s_data.s1_uV;
+            adc_current_channel = AD7793_CH_AIN2P_AIN2M;
+            if(get_current_working_mode() == MODE_MIXING){
+                corrected_target = (uint16_t)(sensors_target.s1_target/100);
+                corrected_current = (uint16_t)(s_data.s1_O2/100);
+                inputValue = pid_Controller(corrected_target, corrected_current, &pidData1);
+                if((prev_input_s1<inputValue) && (corrected_current >= corrected_target) ){
+                    inputValue = prev_input_s1;
+                }
+                prev_input_s1 = inputValue;
+                set_servo(SERVO1, inputValue);
+            }
+            if(++log_position[0]>9){log_position[0]=0;}
+        }else{
+            s_data.s2_uV = uV;
+            s_data.s2_O2 = s_data.s2_uV * s_data.s2_coeff / 10000;
+            log_windows[1][log_position[1]] = s_data.s2_uV;
+            adc_current_channel = AD7793_CH_AIN1P_AIN1M;
+            if(get_current_working_mode() == MODE_MIXING && (sensors_target.s1_target!=sensors_target.s2_target)){
+                uint16_t corrected_target = (uint16_t)(sensors_target.s2_target/100);
+                uint16_t corrected_current = (uint16_t)(s_data.s2_O2/100);
+                
+                inputValue = pid_Controller(corrected_target, corrected_current, &pidData1);
+                inputValue = -inputValue;
+                if((prev_input_s2<inputValue) && (corrected_current >= corrected_target) ){
+                    inputValue = prev_input_s2;
+                }
+                prev_input_s2 = inputValue;
+                set_servo(SERVO2, inputValue);
+            }
+            if(++log_position[1]>9){log_position[1]=0;}
+        }               
+        adc_change_channel_and_trigger_delay(adc_current_channel);
+    }    
 }
 
 unsigned char AD7793_Init(void)
