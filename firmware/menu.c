@@ -172,6 +172,66 @@ void show_set_pid(){
     LCDstring((uint8_t *)"               -",16);
 }
 
+void show_set_servo1_min(){
+    current_working_mode = MODE_SET_SERVO1_MIN;
+    VALVE1_OFF;
+    VALVE2_OFF;
+    LED_VAVLE1_OFF;
+    LED_VAVLE2_OFF; 
+    LCDGotoXY(0,0);
+    LCDstring((uint8_t *)"  Servo1 MIN   +",16);
+    LCDGotoXY(0,1);
+    LCDstring((uint8_t *)"               -",16);
+}
+
+void show_set_servo1_max(){
+    current_working_mode = MODE_SET_SERVO1_MAX;
+    VALVE1_OFF;
+    VALVE2_OFF;
+    LED_VAVLE1_OFF;
+    LED_VAVLE2_OFF; 
+    LCDGotoXY(0,0);
+    LCDstring((uint8_t *)"  Servo1 MAX   +",16);
+    LCDGotoXY(0,1);
+    LCDstring((uint8_t *)"               -",16);
+}
+
+void show_set_servo2_min(){
+    current_working_mode = MODE_SET_SERVO2_MIN;
+    VALVE1_OFF;
+    VALVE2_OFF;
+    LED_VAVLE1_OFF;
+    LED_VAVLE2_OFF; 
+    LCDGotoXY(0,0);
+    LCDstring((uint8_t *)"  Servo2 MIN   +",16);
+    LCDGotoXY(0,1);
+    LCDstring((uint8_t *)"               -",16);
+}
+
+void show_set_servo2_max(){
+    current_working_mode = MODE_SET_SERVO2_MAX;
+    VALVE1_OFF;
+    VALVE2_OFF;
+    LED_VAVLE1_OFF;
+    LED_VAVLE2_OFF; 
+    LCDGotoXY(0,0);
+    LCDstring((uint8_t *)"  Servo1 MIN   +",16);
+    LCDGotoXY(0,1);
+    LCDstring((uint8_t *)"               -",16);
+}
+
+void show_set_timer1(){
+    current_working_mode = MODE_SET_TIMER1;
+    VALVE1_OFF;
+    VALVE2_OFF;
+    LED_VAVLE1_OFF;
+    LED_VAVLE2_OFF; 
+    LCDGotoXY(0,0);
+    LCDstring((uint8_t *)"    Timer1     +",16);
+    LCDGotoXY(0,1);
+    LCDstring((uint8_t *)"               -",16);
+}
+
 void show_submenu(){
     switch(submenu_position){
         case 0:
@@ -195,8 +255,40 @@ void show_submenu(){
         case 6:
             show_start_calibrate();
             break;
-        default:
+        case 7:
             show_set_pid();
+            break;
+        case 8:
+            show_set_pid();
+            break;        
+        case 9:
+            show_set_pid();
+            break;
+        case 10:
+            show_set_pid();
+            break;        
+        case 11:
+            show_set_pid();
+            break;
+        case 12:
+            show_set_pid();
+            break; 
+        case 13:
+            show_set_servo1_min();
+            break;        
+        case 14:
+            show_set_servo1_max();
+            break;
+        case 15:
+            show_set_servo2_min();
+            break;        
+        case 16:
+            show_set_servo2_max();
+            break;
+        case 17:
+            show_set_timer1();
+            break;           
+        default:
             break;    
     }
 }
@@ -207,9 +299,6 @@ void show_mixing(uint8_t store_to_eeprom){
     LED_VAVLE1_ON;
     VALVE1_ON;
 
-    //TODO - remove IRL
-    // LED_VAVLE2_ON;
-    // VALVE2_ON;
     if(store_to_eeprom){
         save_eeprom_data();
         save_target_to_eeprom();
@@ -270,9 +359,9 @@ void show_mixing_headline(){
     if(target.helium > 0 && (sensors_target.s1_target!=sensors_target.s2_target)){
         LED_VAVLE2_ON;
         VALVE2_ON;
-        sprintf(tmpstr,"TmX %2u/%2u  %2u/%2u",  t_o2, t_he, c_o2, c_he);
+        sprintf(tmpstr,"TMX%2u/%2u >%2u/%2u<",  t_o2, t_he, c_o2, c_he);
     }else{
-        sprintf(tmpstr,"EANx%2u  Real:%2u ",  t_o2, c_o2);
+        sprintf(tmpstr,"EAN%2u    >EAN%2u<",  t_o2, c_o2);
     }
     LCDGotoXY(0,0);
     LCDstring((uint8_t *)tmpstr,16);
@@ -292,12 +381,8 @@ void show_mixing_submenu(){
     LCDstring((uint8_t *)tmpstr,16);
 
     LCDGotoXY(0,1);
-    // if(sensors_target.s1_target!=sensors_target.s2_target){
-        sprintf(tmpstr,"t%02uc%02u st%02u v%03u",  t_he, curr_he, s_he_target, sensors_target.valve2_target);
-        LCDstring((uint8_t *)tmpstr,16);
-    // }else{
-        // LCDstring((uint8_t *)"                ",16);
-    // }   
+    sprintf(tmpstr,"t%02uc%02u st%02u v%03u",  t_he, curr_he, s_he_target, sensors_target.valve2_target);
+    LCDstring((uint8_t *)tmpstr,16);
 }
 
 void show_calibration_error(){
@@ -855,6 +940,181 @@ void screen_set_pid(uint8_t pid_index)
     LCDstring((uint8_t *)tmpstr,16);
 }
 
+void screen_set_servo1_min(){
+    uint16_t diff=0;
+    if(buttons.buttonMinus>0){
+        if(buttons.buttonMinus==0xFF){
+            diff = 10;
+        }else{
+            diff = 1;
+        }
+        if(system_config.min_servo_1>diff){
+            system_config.min_servo_1-=diff;
+        }else{
+            system_config.min_servo_1=0;
+        }
+    }
+
+
+    if(buttons.buttonPlus>0){
+        if(buttons.buttonPlus==0xFF){
+            diff = 10;
+        }else{
+            diff = 1;
+        }
+        if(system_config.min_servo_1<(system_config.max_servo_1-diff)){
+            system_config.min_servo_1+=diff;
+        }else{
+            system_config.min_servo_1=system_config.max_servo_1;
+        }
+    }
+    sprintf(tmpstr,"%04u", system_config.min_servo_1);
+    LCDGotoXY(6,1);
+    LCDstring((uint8_t *)tmpstr,4);
+    init_outputs();
+}
+
+void screen_set_servo1_max(){
+    uint16_t diff=0;
+    if(buttons.buttonMinus>0){
+        if(buttons.buttonMinus==0xFF){
+            diff = 10;
+        }else{
+            diff = 1;
+        }
+        if(system_config.max_servo_1>(system_config.min_servo_1-diff)){
+            system_config.max_servo_1-=diff;
+        }else{
+            system_config.max_servo_1=system_config.min_servo_1;
+        }
+    }
+
+
+    if(buttons.buttonPlus>0){
+        if(buttons.buttonPlus==0xFF){
+            diff = 10;
+        }else{
+            diff = 1;
+        }
+        if(system_config.max_servo_1<(10000-diff)){
+            system_config.max_servo_1+=diff;
+        }else{
+            system_config.max_servo_1=10000;
+        }
+    }
+    sprintf(tmpstr,"%04u", system_config.max_servo_1);
+    LCDGotoXY(6,1);
+    LCDstring((uint8_t *)tmpstr,4);
+    init_outputs();
+    set_servo(SERVO1,0);
+    set_servo(SERVO2,0);
+}
+
+void screen_set_servo2_min(){
+    uint16_t diff=0;
+    if(buttons.buttonMinus>0){
+        if(buttons.buttonMinus==0xFF){
+            diff = 10;
+        }else{
+            diff = 1;
+        }
+        if(system_config.min_servo_2>diff){
+            system_config.min_servo_2-=diff;
+        }else{
+            system_config.min_servo_2=0;
+        }
+    }
+
+
+    if(buttons.buttonPlus>0){
+        if(buttons.buttonPlus==0xFF){
+            diff = 10;
+        }else{
+            diff = 1;
+        }
+        if(system_config.min_servo_2<(system_config.max_servo_2-diff)){
+            system_config.min_servo_2+=diff;
+        }else{
+            system_config.min_servo_2=system_config.max_servo_2;
+        }
+    }
+    sprintf(tmpstr,"%04u", system_config.min_servo_2);
+    LCDGotoXY(6,1);
+    LCDstring((uint8_t *)tmpstr,4);
+    init_outputs();
+}
+
+void screen_set_servo2_max(){
+    uint16_t diff=0;
+    if(buttons.buttonMinus>0){
+        if(buttons.buttonMinus==0xFF){
+            diff = 10;
+        }else{
+            diff = 1;
+        }
+        if(system_config.max_servo_2>(system_config.min_servo_2-diff)){
+            system_config.max_servo_2-=diff;
+        }else{
+            system_config.max_servo_2=system_config.min_servo_2;
+        }
+    }
+
+
+    if(buttons.buttonPlus>0){
+        if(buttons.buttonPlus==0xFF){
+            diff = 10;
+        }else{
+            diff = 1;
+        }
+        if(system_config.max_servo_2<(10000-diff)){
+            system_config.max_servo_2+=diff;
+        }else{
+            system_config.max_servo_2=10000;
+        }
+    }
+    sprintf(tmpstr,"%04u", system_config.max_servo_2);
+    LCDGotoXY(6,1);
+    LCDstring((uint8_t *)tmpstr,4);
+    init_outputs();
+    set_servo(SERVO1,0);
+    set_servo(SERVO2,0);
+}
+
+void screen_set_timer1(){
+    uint16_t diff=0;
+    if(buttons.buttonMinus>0){
+        if(buttons.buttonMinus==0xFF){
+            diff = 10;
+        }else{
+            diff = 1;
+        }
+        if(system_config.servo_timer_period_icr_top>diff){
+            system_config.servo_timer_period_icr_top-=diff;
+        }else{
+            system_config.servo_timer_period_icr_top=0;
+        }
+    }
+
+
+    if(buttons.buttonPlus>0){
+        if(buttons.buttonPlus==0xFF){
+            diff = 10;
+        }else{
+            diff = 1;
+        }
+        if(system_config.servo_timer_period_icr_top<(16000-diff)){
+            system_config.servo_timer_period_icr_top+=diff;
+        }else{
+            system_config.servo_timer_period_icr_top=16000;
+        }
+    }
+    sprintf(tmpstr,"%04u", system_config.servo_timer_period_icr_top);
+    LCDGotoXY(6,1);
+    LCDstring((uint8_t *)tmpstr,4);
+    init_outputs();
+}
+
+
 void process_menu_internal(){
     if(current_working_mode==MODE_CALIBRATE){
         s_data.s1_coeff = O2_COEFF/s_data.s1_uV;
@@ -913,6 +1173,21 @@ void process_menu_internal(){
     }else
     if(current_working_mode==MODE_SET_PID){
         screen_set_pid(submenu_position-7);
+    }else
+    if(current_working_mode==MODE_SET_SERVO1_MIN){
+        screen_set_servo1_min();
+    }else
+    if(current_working_mode==MODE_SET_SERVO1_MAX){
+        screen_set_servo1_max();
+    }else
+    if(current_working_mode==MODE_SET_SERVO2_MIN){
+        screen_set_servo2_min();
+    }else
+    if(current_working_mode==MODE_SET_SERVO2_MAX){
+        screen_set_servo2_max();
+    }else
+    if(current_working_mode==MODE_SET_TIMER1){
+        screen_set_timer1();
     }
 
     if(current_working_mode==MODE_MIXING){

@@ -67,6 +67,33 @@ ISR(TIMER0_OVF_vect)
 }
 
 
+int parseInt(char * input, uint8_t max_count,int *result){
+  *result=0;
+  uint32_t buff;
+  uint8_t negative=0;
+  uint8_t i,j;
+  if(input[0]=='-'){
+    negative=1;
+  }
+  for(i=negative;i<max_count;i++){
+    if(input[i]<0x30){
+      return -1;
+    }
+    if(input[i]>0x39){
+      return -1;
+    }
+    buff=(input[i]-0x30);
+    for(j=max_count-1;j>i;j--){
+      buff*=10;
+    }
+    *result+= buff;
+  }
+  if(negative){
+    *result*=-1;
+  }
+  return 0;  
+}
+
 uint8_t blink_5Hz(){
     return fl_blink_5Hz;
 }
@@ -301,8 +328,6 @@ void init()
     }
     while(ANY_BUTTON_PRESSED){;}
     _delay_ms(150);
-    // FILE uart_stream = FDEV_SETUP_STREAM(uart0_putc, uart0_getc, _FDEV_SETUP_RW);
-    // stdout = stdin = &uart_stream;
     sei();
 }
 

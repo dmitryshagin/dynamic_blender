@@ -49,6 +49,11 @@
 #define MODE_RUN_TEST 70
 #define MODE_START_CALIBRATE 71
 #define MODE_SET_PID 81
+#define MODE_SET_SERVO1_MIN 91
+#define MODE_SET_SERVO1_MAX 92
+#define MODE_SET_SERVO2_MIN 93
+#define MODE_SET_SERVO2_MAX 94
+#define MODE_SET_TIMER1 95
 
 typedef struct TARGET_MIX{
   uint16_t oxygen;
@@ -115,6 +120,8 @@ extern struct PID_DATA pidData2;
 
 
 char tmpstr[20];
+
+int parseInt(char * input, uint8_t max_count,int *result);
 
 uint8_t is_log_ok();
 
