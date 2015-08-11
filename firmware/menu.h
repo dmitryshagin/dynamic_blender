@@ -32,6 +32,7 @@ void set_current_working_mode(uint8_t mode);
 void set_countdown_timer(uint8_t seconds);
 void print_calibration_screen(int32_t oxygen1_uV, int32_t oxygen2_uV,uint8_t time_left);
 
+void show_run_test();
 void run_test();
 void validate_o2_data();
 void show_start_calibrate();

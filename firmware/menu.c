@@ -47,6 +47,8 @@ void process_buttons()
 }
 
 void show_run_test(){
+    submenu_position = 5; //to work with UART correctly
+    last_submenu_position = 5;
     current_working_mode = MODE_RUN_TEST;
     VALVE1_OFF;
     VALVE2_OFF;
@@ -212,7 +214,7 @@ void show_set_servo2_max(){
     LED_VAVLE1_OFF;
     LED_VAVLE2_OFF; 
     LCDGotoXY(0,0);
-    LCDstring((uint8_t *)"  Servo1 MIN   +",16);
+    LCDstring((uint8_t *)"  Servo2 MAX   +",16);
     LCDGotoXY(0,1);
     LCDstring((uint8_t *)"               -",16);
 }
@@ -441,12 +443,12 @@ void process_menu_selection(){
         if(submenu_position>=0){
             if(BUTTON_ENTER_PRESSED){
                 submenu_position+=1;
-                if(submenu_position>12){submenu_position=0;}
+                if(submenu_position>17){submenu_position=0;}
                 mode_setup_iteration = 1;
             }else 
             if(BUTTON_EXIT_PRESSED){
                 submenu_position-=1;
-                if(submenu_position<0){submenu_position=12;}
+                if(submenu_position<0){submenu_position=17;}
                 mode_setup_iteration = 1;
             }
         }

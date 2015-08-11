@@ -67,7 +67,7 @@ static uint8_t process_set_emergency_uart(char * pch){
         reply_P(PSTR("<!E6 Emergency O2\n\r"));
         return 1;
     }else{
-        system_config.oxygen_emergency_limit=(uint8_t)parsed_target;
+        system_config.oxygen_emergency_limit=(uint16_t)parsed_target*1000;
         save_eeprom_data();
         validate_o2_data();
         reply_OK();
@@ -96,12 +96,12 @@ static uint8_t process_set_target_helium_uart(char * pch){
     int8_t res;
     int parsed_target;
     pch = strtok (NULL, " ");
-    res=parseInt(pch,strlen(pch),&parsed_target,0,get_helium_limit());
+    res=parseInt(pch,strlen(pch),&parsed_target,0,get_helium_limit()/1000UL);
     if(res<0){
         reply_P(PSTR("<!E8 Helium\n\r"));
         return 1;
     }else{
-        target.helium = (uint16_t)parsed_target*1000;
+        target.helium = (uint32_t)parsed_target*1000;
         validate_o2_data();
         save_target_to_eeprom();
         reply_OK();
@@ -421,13 +421,14 @@ static uint8_t reply_with_status(){
 }
 
 static uint8_t run_test_from_uart(){
+    show_run_test();
     run_test();
     reply_OK();
     return 0;
 }
 
 static uint8_t run_calibration_from_uart(){
-    show_start_calibrate();
+    set_current_working_mode(MODE_CALIBRATE);
     set_countdown_timer(15);
     reply_OK();
     return 0;
