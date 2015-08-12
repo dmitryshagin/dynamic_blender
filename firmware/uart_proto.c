@@ -328,7 +328,7 @@ static uint8_t process_set_servo1_max(char * pch){
         system_config.max_servo_1=(uint16_t)parsed_target;
         save_eeprom_data();
         init_outputs();
-        set_servo(SERVO1,0);
+        set_servo(SERVO1,100);
         set_servo(SERVO2,0);
         reply_OK();
     }
@@ -348,7 +348,7 @@ static uint8_t process_set_servo2_max(char * pch){
         save_eeprom_data();
         init_outputs();
         set_servo(SERVO1,0);
-        set_servo(SERVO2,0);
+        set_servo(SERVO2,100);
         reply_OK();
     }
     return 0;

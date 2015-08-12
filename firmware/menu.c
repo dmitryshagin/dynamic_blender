@@ -1034,7 +1034,7 @@ void screen_set_servo1_max(){
     LCDGotoXY(6,1);
     LCDstring((uint8_t *)tmpstr,4);
     init_outputs();
-    set_servo(SERVO1,0);
+    set_servo(SERVO1,100);
     set_servo(SERVO2,0);
 }
 
@@ -1109,7 +1109,7 @@ void screen_set_servo2_max(){
     LCDstring((uint8_t *)tmpstr,4);
     init_outputs();
     set_servo(SERVO1,0);
-    set_servo(SERVO2,0);
+    set_servo(SERVO2,100);
 }
 
 void screen_set_timer1(){
