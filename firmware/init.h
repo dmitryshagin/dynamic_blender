@@ -84,9 +84,11 @@ typedef struct PID_FACTORS{
 	int16_t s1_p_factor;
 	int16_t s1_i_factor;
 	int16_t s1_d_factor;
+	int16_t	s1_max_output;
 	int16_t s2_p_factor;
 	int16_t s2_i_factor;
 	int16_t s2_d_factor;
+	int16_t	s2_max_output;
 } pid_factors_t;
 
 

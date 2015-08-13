@@ -277,6 +277,39 @@ static uint8_t process_set_pid2_d(char * pch){
     return 0;
 }
 
+
+static uint8_t process_set_pid1_m(char * pch){
+    int8_t res;
+    int parsed_target;
+    pch = strtok (NULL, " ");
+    res=parseInt(pch,strlen(pch),&parsed_target,0,255);
+    if(res<0){
+        reply_P(PSTR("<!E24 PID1 MAX\n\r"));
+        return 1;
+    }else{
+        pid_factors.s1_max_output = parsed_target;
+        save_pid_data_to_eeprom();
+        reply_OK();
+    }
+    return 0;
+}
+
+static uint8_t process_set_pid2_m(char * pch){
+    int8_t res;
+    int parsed_target;
+    pch = strtok (NULL, " ");
+    res=parseInt(pch,strlen(pch),&parsed_target,0,255);
+    if(res<0){
+        reply_P(PSTR("<!E25 PID2 MAX\n\r"));
+        return 1;
+    }else{
+        pid_factors.s2_max_output = parsed_target;
+        save_pid_data_to_eeprom();
+        reply_OK();
+    }
+    return 0;
+}
+
 static uint8_t process_set_servo1_min(char * pch){
     int8_t res;
     int parsed_target;
@@ -328,7 +361,7 @@ static uint8_t process_set_servo1_max(char * pch){
         system_config.max_servo_1=(uint16_t)parsed_target;
         save_eeprom_data();
         init_outputs();
-        set_servo(SERVO1,100);
+        set_servo(SERVO1,0xFF);
         set_servo(SERVO2,0);
         reply_OK();
     }
@@ -348,7 +381,7 @@ static uint8_t process_set_servo2_max(char * pch){
         save_eeprom_data();
         init_outputs();
         set_servo(SERVO1,0);
-        set_servo(SERVO2,100);
+        set_servo(SERVO2,0xFF);
         reply_OK();
     }
     return 0;
@@ -470,12 +503,16 @@ static uint8_t processCommand(uint16_t buffer_pos){
             return process_set_pid1_i(pch);
         }else if((strcmp(pch,">SP1D"))==0){ //S1 PID D
             return process_set_pid1_d(pch);
+        }else if((strcmp(pch,">SP1M"))==0){ //S1 PID D
+            return process_set_pid1_m(pch);
         }else if((strcmp(pch,">SP2P"))==0){ //S2 PID P
             return process_set_pid2_p(pch);
         }else if((strcmp(pch,">SP2I"))==0){ //S2 PID I
             return process_set_pid2_i(pch);
         }else if((strcmp(pch,">SP2D"))==0){ //S2 PID D
             return process_set_pid2_d(pch);
+        }else if((strcmp(pch,">SP2M"))==0){ //S1 PID D
+            return process_set_pid2_m(pch);
         }else if((strcmp(pch,">SS1MIN"))==0){ //Servo 1 min
             return process_set_servo1_min(pch);
         }else if((strcmp(pch,">SS2MIN"))==0){ //Servo 2 min

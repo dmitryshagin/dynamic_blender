@@ -32,7 +32,7 @@
  *  \param d_factor  Derivate term.
  *  \param pid  Struct with PID status.
  */
-void pid_Init(int16_t p_factor, int16_t i_factor, int16_t d_factor, struct PID_DATA *pid)
+void pid_Init(int16_t p_factor, int16_t i_factor, int16_t d_factor, int16_t max_output, struct PID_DATA *pid)
 // Set up PID controller parameters
 {
   // Start values for PID controller
@@ -45,6 +45,7 @@ void pid_Init(int16_t p_factor, int16_t i_factor, int16_t d_factor, struct PID_D
   // Limits to avoid overflow
   pid->maxError = MAX_INT / (pid->P_Factor + 1);
   pid->maxSumError = MAX_I_TERM / (pid->I_Factor + 1);
+  pid->maxOutputValue = max_output;
 }
 
 
@@ -95,11 +96,11 @@ int16_t pid_Controller(uint16_t setPoint, uint16_t processValue, struct PID_DATA
   pid_st->lastProcessValue = processValue;
 
   ret = (p_term + i_term + d_term) / SCALING_FACTOR;
-  if(ret > 100){
-    ret = 100;
+  if(ret > pid_st->maxOutputValue){
+    ret = pid_st->maxOutputValue;
   }
-  else if(ret < -MAX_INT){
-    ret = -MAX_INT;
+  else if(ret < -(pid_st->maxOutputValue)){
+    ret = -(pid_st->maxOutputValue);
   }
 
   return((int16_t)ret);

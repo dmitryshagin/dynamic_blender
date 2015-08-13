@@ -159,14 +159,18 @@ void show_set_valve2(){
     LCDstring((uint8_t *)"               -",16);
 }
 
-void show_set_pid(){
+void show_set_pid(uint8_t show_max_value){
     current_working_mode = MODE_SET_PID;
     VALVE1_OFF;
     VALVE2_OFF;
     LED_VAVLE1_OFF;
     LED_VAVLE2_OFF; 
     LCDGotoXY(0,0);
-    LCDstring((uint8_t *)"PID setup x128 +",16);
+    if(show_max_value){
+        LCDstring((uint8_t *)"PID setup MAX  +",16);
+    }else{
+        LCDstring((uint8_t *)"PID setup x128 +",16);    
+    }
     LCDGotoXY(0,1);
     LCDstring((uint8_t *)"               -",16);
 }
@@ -255,36 +259,42 @@ void show_submenu(){
             show_start_calibrate();
             break;
         case 7:
-            show_set_pid();
+            show_set_pid(0);
             break;
         case 8:
-            show_set_pid();
+            show_set_pid(0);
             break;        
         case 9:
-            show_set_pid();
+            show_set_pid(0);
             break;
         case 10:
-            show_set_pid();
-            break;        
-        case 11:
-            show_set_pid();
+            show_set_pid(1);
             break;
+        case 11:
+            show_set_pid(0);
+            break;        
         case 12:
-            show_set_pid();
-            break; 
+            show_set_pid(0);
+            break;
         case 13:
+            show_set_pid(0);
+            break; 
+        case 14:
+            show_set_pid(1);
+            break; 
+        case 15:
             show_set_servo1_min();
             break;        
-        case 14:
+        case 16:
             show_set_servo1_max();
             break;
-        case 15:
+        case 17:
             show_set_servo2_min();
             break;        
-        case 16:
+        case 18:
             show_set_servo2_max();
             break;
-        case 17:
+        case 19:
             show_set_timer1();
             break;           
         default:
@@ -302,8 +312,8 @@ void show_mixing(uint8_t store_to_eeprom){
         save_eeprom_data();
         save_target_to_eeprom();
         save_pid_data_to_eeprom();
-        pid_Init(pid_factors.s1_p_factor, pid_factors.s1_i_factor , pid_factors.s1_d_factor , &pidData1);
-        pid_Init(pid_factors.s2_p_factor, pid_factors.s2_i_factor , pid_factors.s2_d_factor , &pidData2);
+        pid_Init(pid_factors.s1_p_factor, pid_factors.s1_i_factor , pid_factors.s1_d_factor , pid_factors.s1_max_output, &pidData1);
+        pid_Init(pid_factors.s2_p_factor, pid_factors.s2_i_factor , pid_factors.s2_d_factor , pid_factors.s2_max_output, &pidData2);
     }
     show_mixing_headline();
 }
@@ -443,12 +453,12 @@ void process_menu_selection(){
         if(submenu_position>=0){
             if(BUTTON_ENTER_PRESSED){
                 submenu_position+=1;
-                if(submenu_position>17){submenu_position=0;}
+                if(submenu_position>19){submenu_position=0;}
                 mode_setup_iteration = 1;
             }else 
             if(BUTTON_EXIT_PRESSED){
                 submenu_position-=1;
-                if(submenu_position<0){submenu_position=17;}
+                if(submenu_position<0){submenu_position=19;}
                 mode_setup_iteration = 1;
             }
         }
@@ -893,14 +903,20 @@ static void screen_set_pid(uint8_t pid_index)
             target_value = pid_factors.s1_d_factor;
             break;
         case 3:
+            target_value = pid_factors.s1_max_output;
+            break;    
+        case 4:
             target_value = pid_factors.s2_p_factor;
             break;
-        case 4:
+        case 5:
             target_value = pid_factors.s2_i_factor;
             break;
-        case 5:
+        case 6:
             target_value = pid_factors.s2_d_factor;
             break;
+        case 7:
+            target_value = pid_factors.s2_max_output;
+            break;    
     }
 
     if(buttons.buttonMinus>0){
@@ -928,7 +944,7 @@ static void screen_set_pid(uint8_t pid_index)
             target_value=MAX_INT;
         }
     }
-    char target_name[5];
+    char target_name[7];
 
     switch(pid_index){
         case 0:
@@ -944,17 +960,25 @@ static void screen_set_pid(uint8_t pid_index)
             strncpy(target_name, "S1_D", sizeof("S1_D"));
             break;
         case 3:
+            pid_factors.s1_max_output = target_value;
+            strncpy(target_name, "S1_MAX", sizeof("S1_MAX"));
+            break;    
+        case 4:
             pid_factors.s2_p_factor = target_value;
             strncpy(target_name, "S2_P", sizeof("S2_P"));
             break;
-        case 4:
+        case 5:
             pid_factors.s2_i_factor = target_value;
             strncpy(target_name, "S2_I", sizeof("S2_I"));
             break;
-        case 5:
+        case 6:
             pid_factors.s2_d_factor = target_value;
             strncpy(target_name, "S2_D", sizeof("S2_D"));
             break;
+        case 7:
+            pid_factors.s2_max_output = target_value;
+            strncpy(target_name, "S2_MAX", sizeof("S2_MAX"));
+            break;    
     }
 
 
@@ -1034,7 +1058,7 @@ void screen_set_servo1_max(){
     LCDGotoXY(6,1);
     LCDstring((uint8_t *)tmpstr,4);
     init_outputs();
-    set_servo(SERVO1,100);
+    set_servo(SERVO1,0xFF);
     set_servo(SERVO2,0);
 }
 
@@ -1109,7 +1133,7 @@ void screen_set_servo2_max(){
     LCDstring((uint8_t *)tmpstr,4);
     init_outputs();
     set_servo(SERVO1,0);
-    set_servo(SERVO2,100);
+    set_servo(SERVO2,0xFF);
 }
 
 void screen_set_timer1(){

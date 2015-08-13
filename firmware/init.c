@@ -18,7 +18,7 @@ struct TARGET_MIX nv_target EEMEM = {32000,0};
 struct TARGET_MIX target;
 struct TARGET_MIX stored_target;
 
-struct PID_FACTORS nv_pid_factors EEMEM = {12,2,1,12,2,1};
+struct PID_FACTORS nv_pid_factors EEMEM = {12,2,-1,100,12,2,-1,100};
 struct PID_FACTORS pid_factors;
 struct PID_FACTORS stored_pid_factors;
 
@@ -227,9 +227,11 @@ void save_pid_data_to_eeprom(){
     if (stored_pid_factors.s1_p_factor != pid_factors.s1_p_factor ||
         stored_pid_factors.s1_i_factor != pid_factors.s1_i_factor ||
         stored_pid_factors.s1_d_factor != pid_factors.s1_d_factor ||
+        stored_pid_factors.s1_max_output != pid_factors.s1_max_output ||
         stored_pid_factors.s2_p_factor != pid_factors.s2_p_factor ||
         stored_pid_factors.s2_i_factor != pid_factors.s2_i_factor ||
-        stored_pid_factors.s2_d_factor != pid_factors.s2_d_factor){
+        stored_pid_factors.s2_d_factor != pid_factors.s2_d_factor ||
+        stored_pid_factors.s2_max_output != pid_factors.s2_max_output){
         eeprom_write_block(&pid_factors, &nv_pid_factors, sizeof(pid_factors));
     }
 }
