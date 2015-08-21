@@ -629,10 +629,10 @@ void screen_set_emergency_level()
         }else{
             diff = 1000;
         }
-        if(system_config.oxygen_emergency_limit>(21000+diff)){
+        if(system_config.oxygen_emergency_limit>(26000+diff)){
             system_config.oxygen_emergency_limit-=diff;
         }else{
-            system_config.oxygen_emergency_limit=21000;
+            system_config.oxygen_emergency_limit=26000;
         }
     }
 
@@ -643,10 +643,10 @@ void screen_set_emergency_level()
         }else{
             diff = 1000;
         }
-        if(system_config.oxygen_emergency_limit<(65000-diff)){
+        if(system_config.oxygen_emergency_limit<(55000-diff)){
             system_config.oxygen_emergency_limit+=diff;
         }else{
-            system_config.oxygen_emergency_limit=65000;
+            system_config.oxygen_emergency_limit=55000;
         }
     }
     uint8_t t_print = system_config.oxygen_emergency_limit/1000UL;

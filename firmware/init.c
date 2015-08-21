@@ -392,7 +392,7 @@ void check_alert(){
 uint8_t check_emergency()
 {
     if(!COMPRESSOR_IS_ON 
-            || (s_data.s1_O2 > system_config.oxygen_emergency_limit)
+            || (s_data.s1_O2 > (system_config.oxygen_emergency_limit+2000)) //s1 limit is slightly higher to allowe some overregulation
             || (s_data.s2_O2 > system_config.oxygen_emergency_limit) ){
         return 1;
     }    
@@ -400,7 +400,7 @@ uint8_t check_emergency()
 }
 
 uint8_t is_calibrated_values_ok(){
-    if( get_max_deviation() > 150 ){ return 0;}
+    if( get_max_deviation() > 100 ){ return 0;}
     if( (min_s1 < 6000) || (min_s2 < 6000) ){ return 0; }
     if( (max_s1 > 29000) || (max_s2 > 29000) ){ return 0; }
     return 1;
