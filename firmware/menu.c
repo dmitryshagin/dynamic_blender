@@ -238,25 +238,25 @@ void show_set_timer1(){
 void show_submenu(){
     switch(submenu_position){
         case 0:
-            show_set_brightness();
+            show_start_calibrate();
             break;
         case 1:
-            show_set_contrast();
-            break;
-        case 2:
             show_set_emergency_level();
             break;
-        case 3:
-            show_set_valve1();
-            break;
-        case 4:
-            show_set_valve2();
-            break;
-        case 5:
+        case 2:
             show_run_test();
             break;
+        case 3:
+            show_set_brightness();
+            break;
+        case 4:
+            show_set_contrast();
+            break;
+        case 5:
+            show_set_valve1();
+            break;
         case 6:
-            show_start_calibrate();
+            show_set_valve2();
             break;
         case 7:
             show_set_pid(0);
@@ -436,7 +436,7 @@ void process_menu_selection(){
                 while(ANY_BUTTON_PRESSED){;}
                 LED_ALERT_OFF;
                 BUZZER_OFF;
-                set_countdown_timer(15);
+                set_countdown_timer(20);
             }
         }
     }
@@ -527,7 +527,7 @@ void print_calibration_screen(int32_t oxygen1_uV, int32_t oxygen2_uV, uint8_t ti
       LCDstring((uint8_t *)"Please, turn on ",16);
       LCDGotoXY(0,1);
       LCDstring((uint8_t *)"your compressor!",16);
-      set_countdown_timer(15);
+      set_countdown_timer(20);
     }
 }
 
@@ -1189,7 +1189,7 @@ void process_menu_internal(){
         if(BUTTON_PLUS_PRESSED){
             current_working_mode=MODE_CALIBRATE;
             while(ANY_BUTTON_PRESSED){;}
-            set_countdown_timer(15);
+            set_countdown_timer(30);
         }
     }else
     if(current_working_mode==MODE_SET_BRIGHTNESS){

@@ -462,7 +462,7 @@ static uint8_t run_test_from_uart(){
 
 static uint8_t run_calibration_from_uart(){
     set_current_working_mode(MODE_CALIBRATE);
-    set_countdown_timer(15);
+    set_countdown_timer(30);
     reply_OK();
     return 0;
 }

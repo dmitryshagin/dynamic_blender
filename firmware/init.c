@@ -400,9 +400,9 @@ uint8_t check_emergency()
 }
 
 uint8_t is_calibrated_values_ok(){
-    if( get_max_deviation() > 500 ){ return 0;}
+    if( get_max_deviation() > 150 ){ return 0;}
     if( (min_s1 < 6000) || (min_s2 < 6000) ){ return 0; }
-    if( (max_s2 > 29000) || (max_s2 > 29000) ){ return 0; }
+    if( (max_s1 > 29000) || (max_s2 > 29000) ){ return 0; }
     return 1;
 
 }
