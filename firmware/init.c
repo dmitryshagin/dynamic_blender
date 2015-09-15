@@ -18,7 +18,7 @@ struct TARGET_MIX nv_target EEMEM = {32000,0};
 struct TARGET_MIX target;
 struct TARGET_MIX stored_target;
 
-struct PID_FACTORS nv_pid_factors EEMEM = {12,2,-1,100,12,2,-1,100};
+struct PID_FACTORS nv_pid_factors EEMEM = {6,2,-1,100,-6,2,-1,100};
 struct PID_FACTORS pid_factors;
 struct PID_FACTORS stored_pid_factors;
 
