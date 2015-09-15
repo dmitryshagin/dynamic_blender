@@ -96,7 +96,7 @@ static uint8_t process_set_target_helium_uart(char * pch){
     int8_t res;
     int parsed_target;
     pch = strtok (NULL, " ");
-    res=parseInt(pch,strlen(pch),&parsed_target,0,get_helium_limit()/1000UL);
+    res=parseInt(pch,strlen(pch),&parsed_target,get_min_helium_limit()/1000UL,get_helium_limit()/1000UL);
     if(res<0){
         reply_P(PSTR("<!E8 Helium\n\r"));
         return 1;

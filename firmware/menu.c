@@ -336,6 +336,9 @@ void validate_o2_data(){
     if(target.oxygen+5000>system_config.oxygen_emergency_limit){
         target.oxygen=system_config.oxygen_emergency_limit-5000;
     }
+    if(target.helium<get_min_helium_limit()){
+        target.helium=get_min_helium_limit();
+    }
     if(target.helium>get_helium_limit()){
         target.helium=get_helium_limit();
     }
@@ -345,7 +348,7 @@ void validate_o2_data(){
     }else{
         sensors_target.s1_target = ((uint32_t)target.oxygen * 100UL) / (100 - (target.helium/1000UL));
         sensors_target.s2_target = (uint16_t)target.oxygen;
-    } 
+    }
 }
 
 uint32_t get_helium_limit(){
@@ -356,6 +359,16 @@ uint32_t get_helium_limit(){
         return 100000UL-res;
     }
 }    
+
+uint32_t get_min_helium_limit(){
+    if(target.oxygen<21000){
+        uint32_t res = 100000UL*(21000UL-(uint32_t)target.oxygen)/21000UL;
+        return ((res/1000UL)+1)*1000UL; //we'll round to next value, a little bit higher
+    }else{
+        return 0;
+    }
+}    
+
 
 void show_mixing_headline(){
     char tmpstr[20];
@@ -820,10 +833,10 @@ void screen_set_helium()
         }else{
             diff = 1000;
         }
-        if(target.helium>diff){
+        if(target.helium>(get_min_helium_limit()+diff)){
             target.helium-=diff;
         }else{
-            target.helium=0;
+            target.helium=get_min_helium_limit();
         }
     }
 

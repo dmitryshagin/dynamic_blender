@@ -104,15 +104,16 @@ void process_adc_data()
             log_windows[1][log_position[1]] = s_data.s2_uV;
             adc_current_channel = AD7793_CH_AIN1P_AIN1M;
             if(get_current_working_mode() == MODE_MIXING && (sensors_target.s1_target!=sensors_target.s2_target)){
-                uint16_t corrected_target = (uint16_t)(sensors_target.s2_target/100);
-                uint16_t corrected_current = (uint16_t)(s_data.s2_O2/100);
+                corrected_target = (uint16_t)(sensors_target.s2_target/100);
+                corrected_current = (uint16_t)(s_data.s2_O2/100);
                 
-                inputValue = pid_Controller(corrected_target, corrected_current, &pidData1);
-                inputValue = -inputValue;
-                if((prev_input_s2<inputValue) && (corrected_current >= corrected_target) ){
-                    inputValue = prev_input_s2;
+                inputValue = pid_Controller(corrected_target, corrected_current, &pidData2);
+                // inputValue = -inputValue; //WRONG. need to do it with PID setup
+                if((prev_input_s2<inputValue) && (corrected_current <= corrected_target) ){
+                   inputValue = prev_input_s2;
                 }
                 prev_input_s2 = inputValue;
+                //TODO - do not open second valve if first one is far away from target? Just an idea
                 set_servo(SERVO2, inputValue);
             }
             if(++log_position[1]>9){log_position[1]=0;}

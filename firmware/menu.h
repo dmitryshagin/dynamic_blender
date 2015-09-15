@@ -16,6 +16,7 @@ void show_mixing(uint8_t store_to_eeprom);
 void show_mixing_headline();
 
 uint32_t get_helium_limit();
+uint32_t get_min_helium_limit();
 
 void show_mixing_submenu();
 
