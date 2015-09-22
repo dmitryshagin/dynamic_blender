@@ -177,9 +177,9 @@ void show_set_pid(uint8_t show_max_value){
 
 void show_set_servo1_min(){
     current_working_mode = MODE_SET_SERVO1_MIN;
-    VALVE1_OFF;
+    VALVE1_ON;
     VALVE2_OFF;
-    LED_VAVLE1_OFF;
+    LED_VAVLE1_ON;
     LED_VAVLE2_OFF; 
     LCDGotoXY(0,0);
     LCDstring((uint8_t *)"  Servo1 MIN   +",16);
@@ -189,9 +189,9 @@ void show_set_servo1_min(){
 
 void show_set_servo1_max(){
     current_working_mode = MODE_SET_SERVO1_MAX;
-    VALVE1_OFF;
+    VALVE1_ON;
     VALVE2_OFF;
-    LED_VAVLE1_OFF;
+    LED_VAVLE1_ON;
     LED_VAVLE2_OFF; 
     LCDGotoXY(0,0);
     LCDstring((uint8_t *)"  Servo1 MAX   +",16);
@@ -202,9 +202,9 @@ void show_set_servo1_max(){
 void show_set_servo2_min(){
     current_working_mode = MODE_SET_SERVO2_MIN;
     VALVE1_OFF;
-    VALVE2_OFF;
+    VALVE2_ON;
     LED_VAVLE1_OFF;
-    LED_VAVLE2_OFF; 
+    LED_VAVLE2_ON; 
     LCDGotoXY(0,0);
     LCDstring((uint8_t *)"  Servo2 MIN   +",16);
     LCDGotoXY(0,1);
@@ -214,9 +214,9 @@ void show_set_servo2_min(){
 void show_set_servo2_max(){
     current_working_mode = MODE_SET_SERVO2_MAX;
     VALVE1_OFF;
-    VALVE2_OFF;
+    VALVE2_ON;
     LED_VAVLE1_OFF;
-    LED_VAVLE2_OFF; 
+    LED_VAVLE2_ON; 
     LCDGotoXY(0,0);
     LCDstring((uint8_t *)"  Servo2 MAX   +",16);
     LCDGotoXY(0,1);
@@ -347,7 +347,7 @@ void validate_o2_data(){
         sensors_target.s2_target = target.oxygen;       
     }else{
         sensors_target.s1_target = ((uint32_t)target.oxygen * 100UL) / (100 - (target.helium/1000UL));
-        sensors_target.s2_target = (uint16_t)target.oxygen;
+        sensors_target.s2_target = target.oxygen;
     }
 }
 
@@ -372,18 +372,18 @@ uint32_t get_min_helium_limit(){
 
 void show_mixing_headline(){
     char tmpstr[20];
-    sprintf(tmpstr,"S1:%2li.%01li S2:%2li.%01li  ",  s_data.s1_O2/1000, (s_data.s1_O2%1000)/100, s_data.s2_O2/1000,(s_data.s2_O2%1000)/100);
+    // sprintf(tmpstr,"S1:%2li.%01li S2:%2li.%01li  ",  s_data.s1_O2/1000, (s_data.s1_O2%1000)/100, s_data.s2_O2/1000,(s_data.s2_O2%1000)/100);
     calclucate_real_gas_values();
     uint8_t t_o2 = target.oxygen/1000UL;
     uint8_t t_he = target.helium/1000UL;
-    uint8_t c_o2 = target.real_oxygen/1000UL;
-    uint8_t c_he = target.real_helium/1000UL;
+    uint8_t c_o2 = target.real_oxygen/100UL;
+    uint8_t c_he = target.real_helium/100UL;
     if(target.helium > 0 && (sensors_target.s1_target!=sensors_target.s2_target)){
         LED_VAVLE2_ON;
         VALVE2_ON;
-        sprintf(tmpstr,"TMX%2u/%2u >%2u/%2u<",  t_o2, t_he, c_o2, c_he);
+        sprintf(tmpstr,"%2u/%2u  %2u.%01u/%2u.%01u",  t_o2, t_he, c_o2/10, (c_o2%10)/10, c_he/10, (c_he%10)/10);
     }else{
-        sprintf(tmpstr,"EAN%2u    >EAN%2u<",  t_o2, c_o2);
+        sprintf(tmpstr,"EAN%2u  >EAN%2u.%01u<",  t_o2, c_o2/10, (c_o2%10)/10);
     }
     LCDGotoXY(0,0);
     LCDstring((uint8_t *)tmpstr,16);
@@ -862,7 +862,7 @@ void screen_set_helium()
     LCDstring((uint8_t *)tmpstr,3);
 
     sensors_target.s1_target = ((uint32_t)target.oxygen * 100UL) / (100 - (target.helium/1000UL));
-    sensors_target.s2_target = (uint16_t)target.oxygen;
+    sensors_target.s2_target = target.oxygen;
 
 }
 
