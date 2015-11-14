@@ -379,11 +379,11 @@ void check_alert(){
     if(sensors_target.s1_target!=sensors_target.s2_target){
         if(target.real_helium > (target.helium+1000)){
             bl=1;
-            if(target.real_helium > (target.helium+2000)){bz=1;}
+            if(target.real_helium > (target.helium+3000)){bz=1;}
         }
         if(target.real_helium < (target.helium-1000)){
             bl=1;
-            if(target.real_helium < (target.helium-2000)){bz=1;}
+            if(target.real_helium < (target.helium-3000)){bz=1;}
         }
     }
     set_alert(bl,bz);
@@ -391,9 +391,8 @@ void check_alert(){
 
 uint8_t check_emergency()
 {
-    if(!COMPRESSOR_IS_ON 
-            || (s_data.s1_O2 > (system_config.oxygen_emergency_limit+2000)) //s1 limit is slightly higher to allowe some overregulation
-            || (s_data.s2_O2 > system_config.oxygen_emergency_limit) ){
+    if((s_data.s1_O2 > (system_config.oxygen_emergency_limit+2000)) //s1 limit is slightly higher to allowe some overregulation
+       || (s_data.s2_O2 > system_config.oxygen_emergency_limit) ){
         return 1;
     }    
     return 0;

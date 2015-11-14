@@ -88,8 +88,8 @@ void process_adc_data()
             log_windows[0][log_position[0]] = s_data.s1_uV;
             adc_current_channel = AD7793_CH_AIN2P_AIN2M;
             if(get_current_working_mode() == MODE_MIXING){
-                corrected_target = (uint16_t)((sensors_target.s1_target+25)/50);
-                corrected_current = (uint16_t)((s_data.s1_O2+25)/50);
+                corrected_target = (uint16_t)((sensors_target.s1_target+50)/100);
+                corrected_current = (uint16_t)((s_data.s1_O2+50)/100);
                 inputValue = pid_Controller(corrected_target, corrected_current, &pidData1);
                 if((prev_input_s1<inputValue) && (corrected_current >= corrected_target) ){
                     inputValue = prev_input_s1;
@@ -104,8 +104,8 @@ void process_adc_data()
             log_windows[1][log_position[1]] = s_data.s2_uV;
             adc_current_channel = AD7793_CH_AIN1P_AIN1M;
             if(get_current_working_mode() == MODE_MIXING && (sensors_target.s1_target!=sensors_target.s2_target)){
-                corrected_target = (uint16_t)((sensors_target.s2_target+25)/50);
-                corrected_current = (uint16_t)((s_data.s2_O2+25)/50);
+                corrected_target = (uint16_t)((sensors_target.s2_target+50)/100);
+                corrected_current = (uint16_t)((s_data.s2_O2+50)/100);
                 inputValue = pid_Controller(corrected_target, corrected_current, &pidData2);
                 inputValue = -inputValue;
                 if((prev_input_s2<inputValue) && (corrected_current <= corrected_target) ){

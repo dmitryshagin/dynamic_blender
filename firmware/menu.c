@@ -376,14 +376,14 @@ void show_mixing_headline(){
     calclucate_real_gas_values();
     uint8_t t_o2 = target.oxygen/1000UL;
     uint8_t t_he = target.helium/1000UL;
-    uint8_t c_o2 = target.real_oxygen/100UL;
-    uint8_t c_he = target.real_helium/100UL;
+    uint16_t c_o2 = target.real_oxygen/100UL;
+    uint16_t c_he = target.real_helium/100UL;
     if(target.helium > 0 && (sensors_target.s1_target!=sensors_target.s2_target)){
         LED_VAVLE2_ON;
         VALVE2_ON;
-        sprintf(tmpstr,"%2u/%2u  %2u.%01u/%2u.%01u",  t_o2, t_he, c_o2/10, (c_o2%10)/10, c_he/10, (c_he%10)/10);
+        sprintf(tmpstr,"%2u/%2u  %2u.%01u/%2u.%01u",  t_o2, t_he, c_o2/10, (c_o2%10), c_he/10, (c_he%10));
     }else{
-        sprintf(tmpstr,"EAN%2u  >EAN%2u.%01u<",  t_o2, c_o2/10, (c_o2%10)/10);
+        sprintf(tmpstr,"EAN%2u  >EAN%02u.%01u<",  t_o2, c_o2/10, (c_o2%10));
     }
     LCDGotoXY(0,0);
     LCDstring((uint8_t *)tmpstr,16);
@@ -880,11 +880,7 @@ void screen_main_mixing()
         LCDGotoXY(0,0);
         LCDstring((uint8_t *)"   Emergency!   ",16);
         LCDGotoXY(0,1);
-        if(COMPRESSOR_IS_ON){
-            LCDstring((uint8_t *)"  O2 too high!  ",16);
-        }else{
-            LCDstring((uint8_t *)"Compressor:  OFF",16);
-        }
+        LCDstring((uint8_t *)"Reboot required!",16);
     }else{
         if(mixing_submenu==0){
             show_mixing_headline();
