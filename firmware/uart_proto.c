@@ -445,7 +445,8 @@ static uint8_t reply_with_status(){
     uint8_t s_o2_target = sensors_target.s1_target/1000UL;
     uint8_t s_he_target = sensors_target.s2_target/1000UL;
     
-    sprintf(_tmpstr,"< %02u/%02u, %02u/%02u, %02u, %02u, %02u.%01u, %02u.%01u, %03d, %03d\r\n", 
+    sprintf(_tmpstr,"< %02u, %02u/%02u, %02u/%02u, %02u, %02u, %02u.%01u, %02u.%01u, %03d, %03d\r\n",
+            current_working_mode,
             t_o2, t_he, c_o2, c_he, s_o2_target, s_he_target, 
             curr_s1/10, curr_s1%10, curr_s2/10, curr_s2%10, 
             sensors_target.valve1_target, sensors_target.valve2_target);

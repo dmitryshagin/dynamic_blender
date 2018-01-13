@@ -47,8 +47,8 @@ void process_buttons()
 }
 
 void show_run_test(){
-    submenu_position = 5; //to work with UART correctly
-    last_submenu_position = 5;
+    // submenu_position = 5; //to work with UART correctly
+    // last_submenu_position = 5;
     current_working_mode = MODE_RUN_TEST;
     VALVE1_OFF;
     VALVE2_OFF;
@@ -134,6 +134,19 @@ void show_set_emergency_level(){
     LCDGotoXY(0,1);
     LCDstring((uint8_t *)"               -",16);
 }
+
+void show_set_sensor_usage(){
+    current_working_mode = MODE_SET_SENSOR_USAGE;
+    VALVE1_OFF;
+    VALVE2_OFF;
+    LED_VAVLE1_OFF;
+    LED_VAVLE2_OFF;
+    LCDGotoXY(0,0);
+    LCDstring((uint8_t *)" 1 sens. mode! +",16);
+    LCDGotoXY(0,1);
+    LCDstring((uint8_t *)"               -",16);
+}
+
 
 void show_set_valve1(){
     current_working_mode = MODE_SET_VALVE1;
@@ -296,7 +309,10 @@ void show_submenu(){
             break;
         case 19:
             show_set_timer1();
-            break;           
+            break;
+        case 20:
+            show_set_sensor_usage();
+            break;
         default:
             break;    
     }
@@ -319,8 +335,14 @@ void show_mixing(uint8_t store_to_eeprom){
 }
 
 void calclucate_real_gas_values(){
-    target.real_oxygen = s_data.s2_O2;
+    if(system_config.use_only_first_sensor==0){
+        target.real_oxygen = s_data.s2_O2;
+    }
     if(sensors_target.s1_target==sensors_target.s2_target){
+        if(system_config.use_only_first_sensor>0){
+            //Only in critial situation with 1 sensor available. Unsafe!
+            target.real_oxygen = s_data.s1_O2;
+        }
         target.real_helium = 0;
     }else{
         uint32_t res = ((((10000UL*(uint32_t)target.real_oxygen))/(s_data.s1_O2)))*10UL;
@@ -668,6 +690,30 @@ void screen_set_emergency_level()
     LCDstring((uint8_t *)tmpstr,3);
 }
 
+void screen_set_sensor_usage()
+{
+    char tmpstr[10];
+    if(buttons.buttonMinus>0){
+        if(system_config.use_only_first_sensor>0){
+            system_config.use_only_first_sensor=0;
+        }
+    }
+
+    if(buttons.buttonPlus>0){
+        if(system_config.use_only_first_sensor<1){
+            system_config.use_only_first_sensor=1;
+        }
+    }
+
+    if(system_config.use_only_first_sensor>0){
+        sprintf(tmpstr,"ON");
+    }else{
+        sprintf(tmpstr,"OFF");
+    }
+    LCDGotoXY(7,1);
+    LCDstring((uint8_t *)tmpstr,3);
+}
+
 void screen_set_valve1()
 {
     char tmpstr[10];
@@ -827,6 +873,14 @@ void screen_set_helium()
     char tmpstr[10];
     uint16_t diff=0;
 
+
+    if(system_config.use_only_first_sensor>0){
+        sprintf(tmpstr,"UNAVAILABLE!");
+        LCDGotoXY(3,1);
+        LCDstring((uint8_t *)tmpstr,12);
+        return;
+    }
+
     if(buttons.buttonMinus>0){
         if(buttons.buttonMinus==0xFF){
             diff = 2000;
@@ -884,6 +938,7 @@ void screen_main_mixing()
     }else{
         if(mixing_submenu==0){
             show_mixing_headline();
+            ////////////////////////////////////////
             sprintf(tmpstr,"S1:%2li.%01li S2:%2li.%01li  ",  s_data.s1_O2/1000, (s_data.s1_O2%1000)/100, s_data.s2_O2/1000,(s_data.s2_O2%1000)/100);
             LCDGotoXY(0,1);
             LCDstring((uint8_t *)tmpstr,16);
@@ -1209,6 +1264,9 @@ void process_menu_internal(){
     }else
     if(current_working_mode==MODE_SET_EMERGENCY_LEVEL){
         screen_set_emergency_level();
+    }else
+    if(current_working_mode==MODE_SET_SENSOR_USAGE){
+        screen_set_sensor_usage();
     }else
     if(current_working_mode==MODE_SET_VALVE1){
         screen_set_valve1();

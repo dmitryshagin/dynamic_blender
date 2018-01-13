@@ -44,6 +44,7 @@
 #define MODE_SET_BRIGHTNESS 50
 #define MODE_SET_CONTRAST 51
 #define MODE_SET_EMERGENCY_LEVEL 52
+#define MODE_SET_SENSOR_USAGE 53
 #define MODE_SET_VALVE1 60
 #define MODE_SET_VALVE2 61
 #define MODE_RUN_TEST 70
@@ -101,6 +102,7 @@ typedef struct SYSTEM_CONFIG{
 	uint8_t brightness;
 	uint8_t contrast;
 	uint16_t oxygen_emergency_limit;
+	uint8_t use_only_first_sensor;
 } systemConfig_t;
 
 typedef struct BUTTONS_STATUS{
