@@ -9,8 +9,8 @@
 #include "menu.h"
 
 
-// struct SYSTEM_CONFIG nv_system_config EEMEM = {95,95,660,660,5759,0x80,0xFF,45000};
-struct SYSTEM_CONFIG nv_system_config EEMEM = {95,95,660,660,5759,0x80,0xA0,45000};
+// struct SYSTEM_CONFIG nv_system_config EEMEM = {95,95,660,660,5759,0x80,0xFF,45000,0};
+struct SYSTEM_CONFIG nv_system_config EEMEM = {95,95,660,660,5759,0x80,0xA0,45000,0};
 struct SYSTEM_CONFIG system_config;
 struct SYSTEM_CONFIG stored_system_config;
 
@@ -205,7 +205,8 @@ void save_eeprom_data()
         system_config.servo_timer_period_icr_top != stored_system_config.servo_timer_period_icr_top ||
         system_config.brightness != stored_system_config.brightness ||
         system_config.contrast != stored_system_config.contrast||
-        system_config.oxygen_emergency_limit != stored_system_config.oxygen_emergency_limit){
+        system_config.oxygen_emergency_limit != stored_system_config.oxygen_emergency_limit||
+        system_config.use_only_first_sensor != stored_system_config.use_only_first_sensor){
         eeprom_write_block(&system_config, &nv_system_config, sizeof(system_config));
     }
 }
@@ -419,6 +420,10 @@ uint32_t get_max_deviation(){
         if( log_windows[1][i] < min_s2 ){ min_s2 = log_windows[1][i]; }
         if( log_windows[1][i] > max_s2 ){ max_s2 = log_windows[1][i]; }
     }
+    if(system_config.use_only_first_sensor>0){
+        return (max_s1-min_s1);
+    }
+
     if( (max_s1-min_s1) >  (max_s2-min_s2) ){
         return (max_s1-min_s1);
     }else{
